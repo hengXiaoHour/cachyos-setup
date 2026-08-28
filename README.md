@@ -38,7 +38,8 @@ gsettings set org.gnome.desktop.peripherals.touchpad click-method 'default'
 sudo pacman -S gnome-shell-extension-dash-to-panel
 ```
 - Log out and back in after install
-- Right-click panel > Dash to Panel Settings to customize
+- Apply preset config: `bash dash-to-panel-preset.sh`
+- Right-click panel > Dash to Panel Settings to customize further
 - Note: Replaced dash-to-dock, no longer needed
 
 ## System Info
