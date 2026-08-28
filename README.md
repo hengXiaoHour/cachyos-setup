@@ -49,15 +49,17 @@ sudo pacman -S gnome-shell-extension-dash-to-panel
 - Right-click panel > Dash to Panel Settings to customize further
 - Note: Replaced dash-to-dock, no longer needed
 
-### 6. Skip Boot Menu (Limine)
+### 6. Skip Boot Menu + Splash (Limine)
 - CachyOS uses Limine bootloader (like GRUB)
-- Skip the menu for faster boot:
+- Skip the menu and splash for instant boot:
 ```bash
-sudo sed -i 's/^timeout:.*/timeout: 0/' /boot/limine/limine.conf
+sudo sed -i 's/^timeout:.*/timeout: 0/' /boot/limine.conf
+sudo sed -i 's|^wallpaper:.*|# wallpaper: boot():/limine-splash.png|' /boot/limine.conf
+sudo sed -i '/^interface_branding:/a quiet: yes' /boot/limine.conf
 ```
-- To get menu back, hold **Shift** during boot, or restore timeout:
+- To get menu back, hold **Shift** during boot, or restore:
 ```bash
-sudo sed -i 's/^timeout:.*/timeout: 5/' /boot/limine/limine.conf
+sudo sed -i 's/^timeout:.*/timeout: 5/' /boot/limine.conf
 ```
 
 ## System Info
