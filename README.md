@@ -17,11 +17,13 @@ flatpak install flathub ai.opencode.opencode
 mkdir -p ~/.config/opencode/plugins ~/obsidian-vault/opencode
 cp opencode-config/opencode.jsonc ~/.config/opencode/
 cp opencode-config/vault-memory.js ~/.config/opencode/plugins/
+cp opencode-config/lessons-learned.js ~/.config/opencode/plugins/
 cp opencode-config/AGENTS.md ~/.config/opencode/
 ```
 - Vault location: `~/obsidian-vault/opencode/MEMORY.md`
-- Auto-logs session events, file edits, and facts across sessions
-- Use `memory_write` tool to save important info automatically
+- Lessons location: `~/obsidian-vault/opencode/LESSONS.md`
+- **vault-memory.js**: Auto-logs sessions, file edits, provides `memory_write` tool
+- **lessons-learned.js**: Tracks mistakes, warns on past failures, provides `log_lesson` tool
 
 ### 2. GNOME Tweaks
 - Extra GNOME settings (themes, fonts, etc.)
