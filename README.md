@@ -14,29 +14,37 @@ flatpak install flathub ai.opencode.opencode
 
 **OpenCode Config + Memory Vault:**
 ```bash
-mkdir -p ~/.config/opencode/plugins ~/obsidian-vault/opencode
+mkdir -p ~/.config/opencode/{plugins,mcp-servers} ~/obsidian-vault/opencode
 cp opencode-config/opencode.jsonc ~/.config/opencode/
-cp -r opencode-config/vault-memory ~/.config/opencode/plugins/
-cp -r opencode-config/lessons-learned ~/.config/opencode/plugins/
+cp -r opencode-config/memory-mcp ~/.config/opencode/plugins/
+cp -r opencode-config/playwright-mcp ~/.config/opencode/plugins/
 cp -r opencode-config/subagent-orchestrator ~/.config/opencode/plugins/
 cp -r opencode-config/github-sync ~/.config/opencode/plugins/
+cp -r opencode-config/mcp-servers/* ~/.config/opencode/mcp-servers/
 cp opencode-config/AGENTS.md ~/.config/opencode/
 ```
-- Vault location: `~/obsidian-vault/opencode/MEMORY.md`
-- Lessons location: `~/obsidian-vault/opencode/LESSONS.md`
-- Tasks location: `~/obsidian-vault/opencode/tasks/`
-- **vault-memory**: Auto-logs sessions, file edits, provides `memory_write` tool
-- **lessons-learned**: Tracks mistakes, warns on past failures, provides `log_lesson` tool
-- **subagent-orchestrator**: Parallel task execution, provides:
-  - `spawn_subagent` - spawn a single task
-  - `run_parallel` - run multiple tasks at once
-  - `check_subagent` - check task status
-  - `list_subagents` - list all tasks
-  - `complete_subagent` - mark task done
-- **github-sync**: Auto-syncs to GitHub after successful tasks, provides:
-  - Auto-commit + push after 5s debounce on file changes
-  - `sync_github` - force sync now
-  - `check_sync` - check for uncommitted changes
+
+**Architecture:**
+- **MCP Servers** (backend): `~/.config/opencode/mcp-servers/`
+  - `playwright-mcp/server.js` - Browser automation, screenshots, scraping, test-fix loop
+  - `memory-mcp/server.js` - Vault storage, lessons logging
+- **Plugins** (frontend): `~/.config/opencode/plugins/`
+  - `memory-mcp` - Vault + lessons tools via memory MCP server
+  - `playwright-mcp` - Playwright tools via playwright MCP server
+  - `subagent-orchestrator` - Parallel task execution
+  - `github-sync` - Auto-sync to GitHub
+
+**Tools:**
+- `memory_write` / `memory_read` - Vault operations
+- `log_lesson` / `lessons_read` - Lessons learned
+- `playwright_screenshot` - Take screenshots
+- `playwright_scrape` - Scrape page text
+- `playwright_snapshot` - Get page elements
+- `playwright_eval` - Run Playwright code
+- `playwright_test` - Run tests
+- `playwright_test_fix` - Vision loop: run → fix → re-run
+- `spawn_subagent` / `run_parallel` / etc. - Parallel tasks
+- `sync_github` / `check_sync` - GitHub sync
 
 ### 2. GNOME Tweaks
 - Extra GNOME settings (themes, fonts, etc.)
