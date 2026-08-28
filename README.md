@@ -32,12 +32,14 @@ sudo pacman -S gnome-tweaks
 gsettings set org.gnome.desktop.peripherals.touchpad click-method 'default'
 ```
 
-### 5. GNOME Dock (like Ubuntu)
-- Vanilla GNOME has no dock by default
+### 5. Dash to Panel (Unified Taskbar)
+- Merges top bar + dock into one panel (like Windows style)
 ```bash
-sudo pacman -S gnome-shell-extension-dash-to-dock
+sudo pacman -S gnome-shell-extension-dash-to-panel
 ```
 - Log out and back in after install
+- Right-click panel > Dash to Panel Settings to customize
+- Note: Replaced dash-to-dock, no longer needed
 
 ## System Info
 - OS: CachyOS (Arch-based)
