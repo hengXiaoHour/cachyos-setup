@@ -55,6 +55,13 @@ sudo sed -i '/^interface_branding:/a quiet: yes' /boot/limine.conf
 sudo sed -i 's/^timeout:.*/timeout: 5/' /boot/limine.conf
 ```
 
+### 7. Remove Bloatware
+```bash
+bash remove-bloatware.sh
+```
+- Removes unnecessary pre-installed apps (baobab, decibels, showtime, papers, etc.)
+- Groups remaining bloat (Avahi, Qt V4L2) into System folder
+
 ## System Info
 - OS: CachyOS (Arch-based)
 - Desktop: GNOME (vanilla)
