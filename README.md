@@ -62,14 +62,7 @@ bash remove-bloatware.sh
 - Removes unnecessary pre-installed apps (baobab, decibels, showtime, papers, etc.)
 - Groups remaining bloat (Avahi, Qt V4L2) into System folder
 
-### 8. OpenCode Bodyfix (Relay Workaround)
-Fixes 401 ModelError when OpenCode relay reorders JSON keys.
-```bash
-sudo cp opencode-bodyfix/zz_opencode_bodyfix.pth /usr/lib/python3.14/site-packages/
-sudo cp opencode-bodyfix/zz_opencode_bodyfix.py /usr/lib/python3.14/site-packages/
-```
-
-### 9. ProtonVPN CLI + GUI
+### 8. ProtonVPN CLI + GUI
 ```bash
 sudo pacman -S proton-vpn-cli proton-vpn-gtk-app wireguard-tools
 ```
