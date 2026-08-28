@@ -3,12 +3,16 @@
 # Adapted from: https://github.com/hengXiaoHour/scrolling-touchpad-problem-ubuntu
 set -euo pipefail
 
+echo "==> Installing build dependencies..."
+sudo pacman -S --noconfirm meson ninja
+
 echo "==> Building Wayland Scroll Factor from source..."
 cd /tmp
 git clone https://github.com/daniel-g-carrasco/wayland-scroll-factor.git
 cd wayland-scroll-factor
-make
-sudo make install
+meson setup build
+ninja -C build
+sudo ninja -C build install
 cd ~
 rm -rf /tmp/wayland-scroll-factor
 
