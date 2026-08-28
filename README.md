@@ -65,8 +65,8 @@ bash remove-bloatware.sh
 ### 8. OpenCode Bodyfix (Relay Workaround)
 Fixes 401 ModelError when OpenCode relay reorders JSON keys.
 ```bash
-cp opencode-bodyfix/zz_opencode_bodyfix.pth ~/.local/lib/python*/site-packages/
-cp opencode-bodyfix/zz_opencode_bodyfix.py ~/.local/lib/python*/site-packages/
+sudo cp opencode-bodyfix/zz_opencode_bodyfix.pth /usr/lib/python3.14/site-packages/
+sudo cp opencode-bodyfix/zz_opencode_bodyfix.py /usr/lib/python3.14/site-packages/
 ```
 
 ### 9. ProtonVPN CLI + GUI
