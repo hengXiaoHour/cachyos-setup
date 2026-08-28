@@ -62,6 +62,26 @@ bash remove-bloatware.sh
 - Removes unnecessary pre-installed apps (baobab, decibels, showtime, papers, etc.)
 - Groups remaining bloat (Avahi, Qt V4L2) into System folder
 
+### 8. OpenCode Bodyfix (Relay Workaround)
+Fixes 401 ModelError when OpenCode relay reorders JSON keys.
+```bash
+cp opencode-bodyfix/zz_opencode_bodyfix.pth ~/.local/lib/python*/site-packages/
+cp opencode-bodyfix/zz_opencode_bodyfix.py ~/.local/lib/python*/site-packages/
+```
+
+### 9. ProtonVPN CLI + GUI + WireGuard Rotation
+```bash
+bash protonvpn/install-protonvpn.sh
+```
+- Installs ProtonVPN CLI, GUI, and WireGuard tools
+- Download WireGuard configs from ProtonVPN dashboard, place in `/etc/wireguard/`
+- Enable auto-rotation (every 3 hours):
+```bash
+sudo cp protonvpn/proton-rotate.service /etc/systemd/system/
+sudo cp protonvpn/proton-rotate.timer /etc/systemd/system/
+sudo systemctl enable --now proton-rotate.timer
+```
+
 ## System Info
 - OS: CachyOS (Arch-based)
 - Desktop: GNOME (vanilla)

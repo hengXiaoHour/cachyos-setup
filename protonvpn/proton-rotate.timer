@@ -1,0 +1,11 @@
+[Unit]
+Description=Proton VPN - rotate country every 3 hours
+
+[Timer]
+OnCalendar=*-*-* 00/3:00:00
+RandomizedDelaySec=10m
+Persistent=true
+Unit=proton-rotate.service
+
+[Install]
+WantedBy=timers.target
