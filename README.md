@@ -16,24 +16,24 @@ flatpak install flathub ai.opencode.opencode
 ```bash
 mkdir -p ~/.config/opencode/plugins ~/obsidian-vault/opencode
 cp opencode-config/opencode.jsonc ~/.config/opencode/
-cp opencode-config/vault-memory.js ~/.config/opencode/plugins/
-cp opencode-config/lessons-learned.js ~/.config/opencode/plugins/
-cp opencode-config/subagent-orchestrator.js ~/.config/opencode/plugins/
-cp opencode-config/github-sync.js ~/.config/opencode/plugins/
+cp -r opencode-config/vault-memory ~/.config/opencode/plugins/
+cp -r opencode-config/lessons-learned ~/.config/opencode/plugins/
+cp -r opencode-config/subagent-orchestrator ~/.config/opencode/plugins/
+cp -r opencode-config/github-sync ~/.config/opencode/plugins/
 cp opencode-config/AGENTS.md ~/.config/opencode/
 ```
 - Vault location: `~/obsidian-vault/opencode/MEMORY.md`
 - Lessons location: `~/obsidian-vault/opencode/LESSONS.md`
 - Tasks location: `~/obsidian-vault/opencode/tasks/`
-- **vault-memory.js**: Auto-logs sessions, file edits, provides `memory_write` tool
-- **lessons-learned.js**: Tracks mistakes, warns on past failures, provides `log_lesson` tool
-- **subagent-orchestrator.js**: Parallel task execution, provides:
+- **vault-memory**: Auto-logs sessions, file edits, provides `memory_write` tool
+- **lessons-learned**: Tracks mistakes, warns on past failures, provides `log_lesson` tool
+- **subagent-orchestrator**: Parallel task execution, provides:
   - `spawn_subagent` - spawn a single task
   - `run_parallel` - run multiple tasks at once
   - `check_subagent` - check task status
   - `list_subagents` - list all tasks
   - `complete_subagent` - mark task done
-- **github-sync.js**: Auto-syncs to GitHub after successful tasks, provides:
+- **github-sync**: Auto-syncs to GitHub after successful tasks, provides:
   - Auto-commit + push after 5s debounce on file changes
   - `sync_github` - force sync now
   - `check_sync` - check for uncommitted changes
