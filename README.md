@@ -12,14 +12,7 @@ flatpak install flathub ai.opencode.opencode
 ```
 - Launch: `flatpak run ai.opencode.opencode`
 
-### 2. Pamac (Unified Package Manager)
-- GUI to install apps from pacman, AUR, Flatpak, and Snap
-```bash
-sudo pacman -S pamac-aur
-```
-- Open: search "Add/Remove Software" or run `pamac-manager`
-
-### 3. GNOME Tweaks
+### 2. GNOME Tweaks
 - Extra GNOME settings (themes, fonts, etc.)
 ```bash
 sudo pacman -S gnome-tweaks
@@ -65,10 +58,9 @@ sudo sed -i 's/^timeout:.*/timeout: 5/' /boot/limine.conf
 ## System Info
 - OS: CachyOS (Arch-based)
 - Desktop: GNOME (vanilla)
-- Package managers: pacman, Flatpak, Pamac
+- Package managers: pacman, Flatpak, Shelly
 
 ## Tips
-- Use `sudo pacman -S <app>` for official repo apps
-- Use `pamac-manager` GUI for easy install
+- Use Shelly for app management (GUI)
 - Use `flatpak install flathub <app>` for sandboxed apps
 - Avoid `.deb` files - they're for Ubuntu/Debian only
