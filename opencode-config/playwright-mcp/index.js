@@ -23,7 +23,8 @@ export const PlaywrightMCP = async () => {
           path: tool.schema.string().optional().describe("Save path"),
         },
         async execute(args) {
-          return await callMCP("screenshot", args)
+          const res = await callMCP("screenshot", args)
+          return res.saved || JSON.stringify(res)
         },
       }),
 
@@ -34,7 +35,8 @@ export const PlaywrightMCP = async () => {
           selector: tool.schema.string().optional().describe("CSS selector"),
         },
         async execute(args) {
-          return await callMCP("scrape", args)
+          const res = await callMCP("scrape", args)
+          return res.text || JSON.stringify(res)
         },
       }),
 
@@ -44,7 +46,8 @@ export const PlaywrightMCP = async () => {
           url: tool.schema.string().describe("URL to snapshot"),
         },
         async execute(args) {
-          return await callMCP("snapshot", args)
+          const res = await callMCP("snapshot", args)
+          return JSON.stringify(res.elements || res, null, 2)
         },
       }),
 
@@ -54,7 +57,8 @@ export const PlaywrightMCP = async () => {
           code: tool.schema.string().describe("JavaScript code"),
         },
         async execute(args) {
-          return await callMCP("eval", args)
+          const res = await callMCP("eval", args)
+          return res.output || JSON.stringify(res)
         },
       }),
 
@@ -64,7 +68,8 @@ export const PlaywrightMCP = async () => {
           testPath: tool.schema.string().describe("Path to test file(s)"),
         },
         async execute(args) {
-          return await callMCP("test_run", args)
+          const res = await callMCP("test_run", args)
+          return res.output || JSON.stringify(res)
         },
       }),
 
@@ -75,7 +80,8 @@ export const PlaywrightMCP = async () => {
           maxIterations: tool.schema.number().optional().describe("Max iterations (default 3)"),
         },
         async execute(args) {
-          return await callMCP("test_fix", args)
+          const res = await callMCP("test_fix", args)
+          return JSON.stringify(res, null, 2)
         },
       }),
     },

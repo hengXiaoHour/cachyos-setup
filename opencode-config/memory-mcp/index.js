@@ -1,13 +1,6 @@
 import { tool } from "@opencode-ai/plugin"
-import { readFileSync } from "node:fs"
-import { homedir } from "node:os"
-import { join } from "node:path"
 
 const MCP_URL = "http://localhost:3002"
-
-function vaultPath() {
-  return join(homedir(), "obsidian-vault", "opencode", "MEMORY.md")
-}
 
 async function callMCP(method, params = {}) {
   const res = await fetch(MCP_URL, {
@@ -24,12 +17,10 @@ export const MemoryMCP = async () => {
   return {
     "experimental.chat.system.transform": async (input, output) => {
       try {
-        const p = vaultPath()
-        let vault = ""
-        try { vault = readFileSync(p, "utf8") } catch {}
+        const res = await callMCP("memory_read")
+        const vault = res.content || ""
         if (vault.trim().length === 0) return
-        const snippet = vault.slice(-8000)
-        output.system = (output.system || "") + `\n\n## Memory vault (last 8k)\n${snippet}\n`
+        output.system.push(`\n## Memory vault (last 8k)\n${vault.slice(-8000)}\n`)
       } catch {}
     },
 
@@ -47,7 +38,8 @@ export const MemoryMCP = async () => {
           heading: tool.schema.string().optional().describe("Section heading"),
         },
         async execute(args) {
-          return await callMCP("memory_write", args)
+          const res = await callMCP("memory_write", args)
+          return res.saved || JSON.stringify(res)
         },
       }),
 
@@ -55,7 +47,8 @@ export const MemoryMCP = async () => {
         description: "Read the current memory vault",
         args: {},
         async execute() {
-          return await callMCP("memory_read")
+          const res = await callMCP("memory_read")
+          return res.content || ""
         },
       }),
 
@@ -67,7 +60,8 @@ export const MemoryMCP = async () => {
           fix: tool.schema.string().describe("What worked instead"),
         },
         async execute(args) {
-          return await callMCP("log_lesson", args)
+          const res = await callMCP("log_lesson", args)
+          return res.logged || JSON.stringify(res)
         },
       }),
 
@@ -75,7 +69,8 @@ export const MemoryMCP = async () => {
         description: "Read the lessons learned log",
         args: {},
         async execute() {
-          return await callMCP("lessons_read")
+          const res = await callMCP("lessons_read")
+          return res.content || ""
         },
       }),
     },
