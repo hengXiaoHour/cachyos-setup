@@ -13,7 +13,6 @@ sudo pacman -Rns --noconfirm \
   meld \
   loupe \
   ptyxis \
-  resources \
   gnome-text-editor \
   gnome-power-manager \
   sushi \
