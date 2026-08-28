@@ -16,9 +16,19 @@ function agentsPaths() {
   ]
 }
 
+function logToVault(line) {
+  try {
+    const p = vaultPath()
+    appendFileSync(p, line)
+    const [, apath] = agentsPaths()
+    appendFileSync(apath, line)
+  } catch {}
+}
+
 export const VaultMemory = async ({ directory, worktree }) => {
   const initDir = directory
   const initWorktree = worktree
+  const sessionMessages = new Map()
 
   function tag(ctx) {
     const dir = ctx?.directory || initDir || process.cwd()
@@ -45,6 +55,41 @@ export const VaultMemory = async ({ directory, worktree }) => {
         output.system = (output.system || "") + `\n\n## Memory vault (auto-loaded from ${p} — last 8k)\n${snippet}\n`
       } catch {}
     },
+
+    "experimental.chat.messages.transform": async (input, output) => {
+      try {
+        const messages = output?.messages || []
+        if (messages.length === 0) return
+
+        const lastMsg = messages[messages.length - 1]
+        const parts = lastMsg?.parts || []
+        const userText = parts
+          .filter(p => p.type === "text")
+          .map(p => p.text)
+          .join(" ")
+          .slice(0, 200)
+
+        if (!userText) return
+
+        const sid = messages[0]?.info?.sessionID || ""
+        const ctx = { directory: initDir, worktree: initWorktree, sessionID: sid }
+        const date = new Date().toISOString().slice(0, 10)
+        const time = new Date().toISOString().slice(11, 19)
+
+        if (!sessionMessages.has(sid)) {
+          sessionMessages.set(sid, { userMsgs: [], assistantMsgs: [] })
+        }
+        const session = sessionMessages.get(sid)
+
+        if (lastMsg?.info?.role === "user") {
+          session.userMsgs.push(userText)
+          if (session.userMsgs.length <= 3) {
+            logToVault(`- ${date} ${time} ${tag(ctx)} user: ${userText}\n`)
+          }
+        }
+      } catch {}
+    },
+
     "experimental.session.compacting": async (input, output) => {
       output.context.push(
         `## Shared memory vault\n` +
@@ -52,6 +97,7 @@ export const VaultMemory = async ({ directory, worktree }) => {
           `call memory_write for unresolved errors, lessons from mistakes, and key decisions.`
       )
     },
+
     event: async ({ event }) => {
       try {
         if (event.type === "session.idle" || event.type === "session.created") {
@@ -59,15 +105,31 @@ export const VaultMemory = async ({ directory, worktree }) => {
           const sid = event.properties?.sessionID || event.properties?.sessionId || ""
           const ctx = { directory: initDir, worktree: initWorktree, sessionID: sid }
           const date = new Date().toISOString().slice(0, 10)
-          const line = `- ${date} ${tag(ctx)} auto: ${event.type}\n`
+          const time = new Date().toISOString().slice(11, 19)
+          const line = `- ${date} ${time} ${tag(ctx)} auto: ${event.type}\n`
           appendFileSync(p, line)
           try {
             const [, apath] = agentsPaths()
             appendFileSync(apath, line)
           } catch {}
+
+          if (event.type === "session.idle" && sessionMessages.has(sid)) {
+            const session = sessionMessages.get(sid)
+            const summary = session.userMsgs.slice(-3).join("; ").slice(0, 300)
+            if (summary) {
+              const summaryLine = `- ${date} ${time} ${tag(ctx)} session_summary: ${summary}\n`
+              appendFileSync(p, summaryLine)
+              try {
+                const [, apath] = agentsPaths()
+                appendFileSync(apath, summaryLine)
+              } catch {}
+            }
+            sessionMessages.delete(sid)
+          }
         }
       } catch {}
     },
+
     "tool.execute.after": async (input, output) => {
       try {
         if (input.tool === "edit" || input.tool === "write") {
@@ -76,8 +138,9 @@ export const VaultMemory = async ({ directory, worktree }) => {
           const p = vaultPath()
           const ctx = { directory: output?.directory || initDir, worktree: output?.worktree || initWorktree, sessionID: input?.sessionID || output?.sessionID }
           const date = new Date().toISOString().slice(0, 10)
+          const time = new Date().toISOString().slice(11, 19)
           const detail = `${input.tool}: ${input.args?.filePath || ""}`
-          const line = `- ${date} ${tag(ctx)} auto: ${detail}\n`
+          const line = `- ${date} ${time} ${tag(ctx)} auto: ${detail}\n`
           appendFileSync(p, line)
           try {
             const [, apath] = agentsPaths()
@@ -86,6 +149,7 @@ export const VaultMemory = async ({ directory, worktree }) => {
         }
       } catch {}
     },
+
     tool: {
       memory_write: tool({
         description:
@@ -110,7 +174,8 @@ export const VaultMemory = async ({ directory, worktree }) => {
             addition += `\n## ${args.heading}\n`
           }
           const date = new Date().toISOString().slice(0, 10)
-          const line = `- ${date} ${tag(ctx)} ${args.entry}\n`
+          const time = new Date().toISOString().slice(11, 19)
+          const line = `- ${date} ${time} ${tag(ctx)} ${args.entry}\n`
           if (addition) appendFileSync(p, addition)
           appendFileSync(p, line)
           let mirrored = ""
