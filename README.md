@@ -12,6 +12,17 @@ flatpak install flathub ai.opencode.opencode
 ```
 - Launch: `flatpak run ai.opencode.opencode`
 
+**OpenCode Config + Memory Vault:**
+```bash
+mkdir -p ~/.config/opencode/plugins ~/obsidian-vault/opencode
+cp opencode-config/opencode.jsonc ~/.config/opencode/
+cp opencode-config/vault-memory.js ~/.config/opencode/plugins/
+cp opencode-config/AGENTS.md ~/.config/opencode/
+```
+- Vault location: `~/obsidian-vault/opencode/MEMORY.md`
+- Auto-logs session events, file edits, and facts across sessions
+- Use `memory_write` tool to save important info automatically
+
 ### 2. GNOME Tweaks
 - Extra GNOME settings (themes, fonts, etc.)
 ```bash
