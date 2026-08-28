@@ -69,17 +69,9 @@ cp opencode-bodyfix/zz_opencode_bodyfix.pth ~/.local/lib/python*/site-packages/
 cp opencode-bodyfix/zz_opencode_bodyfix.py ~/.local/lib/python*/site-packages/
 ```
 
-### 9. ProtonVPN CLI + GUI + WireGuard Rotation
+### 9. ProtonVPN CLI + GUI
 ```bash
-bash protonvpn/install-protonvpn.sh
-```
-- Installs ProtonVPN CLI, GUI, and WireGuard tools
-- Download WireGuard configs from ProtonVPN dashboard, place in `/etc/wireguard/`
-- Enable auto-rotation (every 3 hours):
-```bash
-sudo cp protonvpn/proton-rotate.service /etc/systemd/system/
-sudo cp protonvpn/proton-rotate.timer /etc/systemd/system/
-sudo systemctl enable --now proton-rotate.timer
+sudo pacman -S proton-vpn-cli proton-vpn-gtk-app wireguard-tools
 ```
 
 ## System Info
