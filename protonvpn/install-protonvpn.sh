@@ -3,10 +3,7 @@
 set -euo pipefail
 
 echo "==> Installing ProtonVPN..."
-sudo pacman -S --noconfirm protonvpn protonvpn-gui wireguard-tools
-
-echo "==> Installing ProtonVPN CLI (via pip)..."
-pip install --user protonvpn-cli
+sudo pacman -S --noconfirm proton-vpn-cli proton-vpn-gtk-app wireguard-tools
 
 echo "==> Setting up WireGuard configs..."
 echo "Download your WireGuard configs from ProtonVPN dashboard:"
