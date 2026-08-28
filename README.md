@@ -78,6 +78,21 @@ bash remove-bloatware.sh
 sudo pacman -S proton-vpn-cli proton-vpn-gtk-app wireguard-tools
 ```
 
+## Test Results
+
+### OpenCode Vault-Memory Plugin
+- **Date:** 2026-08-28
+- **Status:** Installed and verified
+- **Plugin:** `~/.config/opencode/plugins/vault-memory.js`
+- **Vault:** `~/obsidian-vault/opencode/MEMORY.md`
+- **Config:** `~/.config/opencode/opencode.jsonc`
+- **Test:** OpenCode loads without errors, plugin syntax valid
+- **Features verified:**
+  - Auto-logs session events (idle, created)
+  - Auto-logs file edits (edit, write)
+  - `memory_write` tool available
+  - Vault loaded into system prompt
+
 ## System Info
 - OS: CachyOS (Arch-based)
 - Desktop: GNOME (vanilla)
