@@ -19,6 +19,7 @@ cp opencode-config/opencode.jsonc ~/.config/opencode/
 cp opencode-config/vault-memory.js ~/.config/opencode/plugins/
 cp opencode-config/lessons-learned.js ~/.config/opencode/plugins/
 cp opencode-config/subagent-orchestrator.js ~/.config/opencode/plugins/
+cp opencode-config/github-sync.js ~/.config/opencode/plugins/
 cp opencode-config/AGENTS.md ~/.config/opencode/
 ```
 - Vault location: `~/obsidian-vault/opencode/MEMORY.md`
@@ -32,6 +33,10 @@ cp opencode-config/AGENTS.md ~/.config/opencode/
   - `check_subagent` - check task status
   - `list_subagents` - list all tasks
   - `complete_subagent` - mark task done
+- **github-sync.js**: Auto-syncs to GitHub after successful tasks, provides:
+  - Auto-commit + push after 5s debounce on file changes
+  - `sync_github` - force sync now
+  - `check_sync` - check for uncommitted changes
 
 ### 2. GNOME Tweaks
 - Extra GNOME settings (themes, fonts, etc.)
