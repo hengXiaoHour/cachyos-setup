@@ -25,12 +25,19 @@ sudo pacman -S pamac-aur
 sudo pacman -S gnome-tweaks
 ```
 
-### 4. Touchpad Right-Click
-- Default: use **two-finger tap** for right-click
-- If not working, try:
+### 4. Touchpad Fixes
+**Right-Click:** Default is **two-finger tap**. If not working:
 ```bash
 gsettings set org.gnome.desktop.peripherals.touchpad click-method 'default'
 ```
+
+**Scroll Speed:** GNOME has no scroll speed setting. Fix:
+```bash
+bash fix-touchpad-scroll-arch.sh
+```
+Then log out and back in. Uses Wayland Scroll Factor (WSF).
+- Adjust: `wsf set 0.15` (recommended), `wsf set 0.1` (slower), `wsf set 1.0` (default)
+- Per-app speeds: enable Touchpad Speed Control extension
 
 ### 5. Dash to Panel (Unified Taskbar)
 - Merges top bar + dock into one panel (like Windows style)
