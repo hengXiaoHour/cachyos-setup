@@ -1,6 +1,35 @@
 import { tool } from "@opencode-ai/plugin"
+import { spawn } from "node:child_process"
+import net from "node:net"
+import { fileURLToPath } from "node:url"
+import { dirname, join } from "node:path"
 
 const MCP_URL = "http://localhost:3002"
+const PORT = 3002
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+function portInUse(port) {
+  return new Promise((resolve) => {
+    const s = net.connect({ port, host: "127.0.0.1" })
+    s.on("connect", () => { s.destroy(); resolve(true) })
+    s.on("error", () => resolve(false))
+  })
+}
+
+async function ensureServer() {
+  if (await portInUse(PORT)) return
+  const script = join(__dirname, "..", "..", "mcp-servers", "memory-mcp", "server.js")
+  const child = spawn("node", [script], {
+    stdio: "ignore",
+    detached: true,
+    env: { ...process.env, PORT: String(PORT) },
+  })
+  child.unref()
+  for (let i = 0; i < 40; i++) {
+    await new Promise((r) => setTimeout(r, 250))
+    if (await portInUse(PORT)) return
+  }
+}
 
 async function callMCP(method, params = {}) {
   const res = await fetch(MCP_URL, {
@@ -14,6 +43,8 @@ async function callMCP(method, params = {}) {
 }
 
 export const MemoryMCP = async () => {
+  await ensureServer()
+
   return {
     "experimental.chat.system.transform": async (input, output) => {
       try {
