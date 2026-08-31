@@ -20,6 +20,7 @@ cp -r opencode-config/memory-mcp ~/.config/opencode/plugins/
 cp -r opencode-config/playwright-mcp ~/.config/opencode/plugins/
 cp -r opencode-config/subagent-orchestrator ~/.config/opencode/plugins/
 cp -r opencode-config/github-sync ~/.config/opencode/plugins/
+cp -r opencode-config/session-sync ~/.config/opencode/plugins/
 cp -r opencode-config/mcp-servers/* ~/.config/opencode/mcp-servers/
 cp -r opencode-config/skills/verify-before-handover ~/.config/opencode/skills/
 cp opencode-config/AGENTS.md ~/.config/opencode/
@@ -34,6 +35,7 @@ cp opencode-config/AGENTS.md ~/.config/opencode/
   - `playwright-mcp` - Playwright tools via playwright MCP server
   - `subagent-orchestrator` - Parallel task execution
   - `github-sync` - Auto-sync to GitHub
+  - `session-sync` - Multi-session coordination via shared files
 - **Skills**: `~/.config/opencode/skills/`
   - `verify-before-handover` - Test every change before handing off
 
@@ -48,6 +50,8 @@ cp opencode-config/AGENTS.md ~/.config/opencode/
 - `playwright_test_fix` - Vision loop: run → fix → re-run
 - `spawn_subagent` / `run_parallel` / etc. - Parallel tasks
 - `sync_github` / `check_sync` - GitHub sync
+- `session_register` / `session_status` / `session_list` - Multi-session coordination
+- `session_write` / `session_read` / `session_broadcast` - Inter-session messaging
 
 ### 2. GNOME Tweaks
 - Extra GNOME settings (themes, fonts, etc.)

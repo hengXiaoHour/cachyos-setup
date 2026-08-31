@@ -21,6 +21,7 @@
     "~/.config/opencode/plugins/memory-mcp",
     "~/.config/opencode/plugins/subagent-orchestrator",
     "~/.config/opencode/plugins/github-sync",
-    "~/.config/opencode/plugins/playwright-mcp"
+    "~/.config/opencode/plugins/playwright-mcp",
+    "~/.config/opencode/plugins/session-sync"
   ]
 }
