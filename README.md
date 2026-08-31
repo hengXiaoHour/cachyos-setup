@@ -22,7 +22,6 @@ cp -r opencode-config/subagent-orchestrator ~/.config/opencode/plugins/
 cp -r opencode-config/github-sync ~/.config/opencode/plugins/
 cp -r opencode-config/mcp-servers/* ~/.config/opencode/mcp-servers/
 cp -r opencode-config/skills/verify-before-handover ~/.config/opencode/skills/
-cp -r opencode-config/skills/opencode-ensemble ~/.config/opencode/skills/
 cp opencode-config/AGENTS.md ~/.config/opencode/
 ```
 
@@ -35,17 +34,8 @@ cp opencode-config/AGENTS.md ~/.config/opencode/
   - `playwright-mcp` - Playwright tools via playwright MCP server
   - `subagent-orchestrator` - Parallel task execution
   - `github-sync` - Auto-sync to GitHub
-  - `@hueyexe/opencode-ensemble@0.16.0` (npm) - Multi-agent teams with worktree isolation
 - **Skills**: `~/.config/opencode/skills/`
   - `verify-before-handover` - Test every change before handing off
-  - `opencode-ensemble` - How to form/spawn/review agent teams
-
-**Parallel / Multi-Session Agents (OpenCode Ensemble):**
-- Run multiple OpenCode agents in parallel, each in its own **git worktree** → no file conflicts
-- Agents **message each other** (`team_message`, `team_broadcast`) and share a **task board**
-- Live dashboard at `http://localhost:4747`
-- Worktrees are allowed via `external_directory` permission
-- Requires **Node >= 24** (uses `node:sqlite`)
 
 **Tools:**
 - `memory_write` / `memory_read` - Vault operations
@@ -58,7 +48,6 @@ cp opencode-config/AGENTS.md ~/.config/opencode/
 - `playwright_test_fix` - Vision loop: run → fix → re-run
 - `spawn_subagent` / `run_parallel` / etc. - Parallel tasks
 - `sync_github` / `check_sync` - GitHub sync
-- `team_create` / `team_spawn` / `team_merge` / `team_message` etc. - Multi-agent teams (worktree-isolated)
 
 ### 2. GNOME Tweaks
 - Extra GNOME settings (themes, fonts, etc.)

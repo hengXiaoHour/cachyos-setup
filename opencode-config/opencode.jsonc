@@ -9,8 +9,7 @@
     "bash": "allow",
     "task": "allow",
     "external_directory": {
-      "*": "allow",
-      "~/.local/share/opencode/worktree/**": "allow"
+      "*": "allow"
     },
     "todowrite": "allow",
     "question": "allow",
@@ -22,7 +21,6 @@
     "~/.config/opencode/plugins/memory-mcp",
     "~/.config/opencode/plugins/subagent-orchestrator",
     "~/.config/opencode/plugins/github-sync",
-    "~/.config/opencode/plugins/playwright-mcp",
-    "@hueyexe/opencode-ensemble@0.16.0"
+    "~/.config/opencode/plugins/playwright-mcp"
   ]
 }
