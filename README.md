@@ -35,7 +35,7 @@ cp opencode-config/AGENTS.md ~/.config/opencode/
   - `playwright-mcp` - Playwright tools via playwright MCP server
   - `subagent-orchestrator` - Parallel task execution
   - `github-sync` - Auto-sync to GitHub
-  - `session-sync` - Multi-session coordination via shared files
+  - `session-sync` - Multi-session coordination (auto-registers on load, scoped per project)
 - **Skills**: `~/.config/opencode/skills/`
   - `verify-before-handover` - Test every change before handing off
 
@@ -50,8 +50,11 @@ cp opencode-config/AGENTS.md ~/.config/opencode/
 - `playwright_test_fix` - Vision loop: run → fix → re-run
 - `spawn_subagent` / `run_parallel` / etc. - Parallel tasks
 - `sync_github` / `check_sync` - GitHub sync
-- `session_register` / `session_status` / `session_list` - Multi-session coordination
+- `session_status` / `session_list` / `session_all_projects` - Multi-session coordination
 - `session_write` / `session_read` / `session_broadcast` - Inter-session messaging
+  - Sessions **auto-register** on plugin load (no manual call needed)
+  - Scoped to the current project dir — sessions in other projects are invisible
+  - Data lives in `~/obsidian-vault/coordination/<project>/`
 
 ### 2. GNOME Tweaks
 - Extra GNOME settings (themes, fonts, etc.)
