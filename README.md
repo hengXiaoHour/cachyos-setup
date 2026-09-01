@@ -39,6 +39,40 @@ cp opencode-config/AGENTS.md ~/.config/opencode/
 - **Skills**: `~/.config/opencode/skills/`
   - `verify-before-handover` - Test every change before handing off
 
+### 2. GNOME Extensions (CachyOS Wayland)
+
+**Auto Move to New Workspace** + **Touchpad Scroll Fix**
+
+Every new window automatically opens in its own workspace. No more dragging tabs.
+
+```bash
+cd ~/cachyos-setup/gnome-extensions
+./install.sh
+# Then log out/in
+```
+
+**What it does:**
+- `auto-move-new-workspace@sobeitnow` - Moves selected apps to new workspaces automatically
+  - Apps: Alacritty, Brave, Nautilus, VS Code, Telegram, Shelly, ProtonVPN, Arduino, Firefox, Chromium
+  - Focuses new workspace so you follow the window
+- `touchpad-speed-control@ritesh` - Per-app touchpad scroll speed
+  - Global: `0.35` (slow)
+  - Browsers: `0.35` (same speed)
+- `wayland-scroll-factor` - Global scroll speed `0.35`
+
+**Clipboard bug fix:** `wl-clipboard` Wayland helper creates tiny invisible windows on copy/paste. The extension has a `100ms` delay + `WeakSet` vaccine to ignore these helpers.
+
+**To add/remove apps:**
+```bash
+SCHEMADIR=~/.local/share/gnome-shell/extensions/auto-move-new-workspace@sobeitnow/schemas
+gsettings --schemadir "$SCHEMADIR" set org.gnome.shell.extensions.auto-move-new-workspace application-list "['Alacritty.desktop', 'brave-browser.desktop']"
+```
+
+**To change scroll speed:**
+```bash
+wsf set --scroll-vertical 0.35 --scroll-horizontal 0.35
+```
+
 **Tools:**
 - `memory_write` / `memory_read` - Vault operations
 - `log_lesson` / `lessons_read` - Lessons learned

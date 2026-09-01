@@ -1,0 +1,8 @@
+{
+  "uuid": "every-window-new-workspace@custom",
+  "name": "Every Window to New Workspace",
+  "description": "Every new window/popup automatically opens in its own individual workspace. No dragging needed.",
+  "url": "https://github.com/cachyos",
+  "shell-version": ["46","47","48","49","50"],
+  "version": 1
+}
