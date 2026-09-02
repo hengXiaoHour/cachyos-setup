@@ -13,10 +13,38 @@ tools or dependencies beyond what each script documents.
 
 ---
 
+## Quick Start — one-line install
+
+```bash
+# Everything that installs into your $HOME (OpenCode config + keyless Hermes):
+curl -fsSL https://raw.githubusercontent.com/hengXiaoHour/cachyos-setup/master/setup.sh | bash
+
+# Add the sudo/GUI-requiring system tweaks (boot, touchpad, dash-to-panel,
+# bloatware removal):
+curl -fsSL https://raw.githubusercontent.com/hengXiaoHour/cachyos-setup/master/setup.sh | bash -s -- --full
+```
+
+Or from a local clone:
+
+```bash
+git clone https://github.com/hengXiaoHour/cachyos-setup ~/cachyos-setup
+cd ~/cachyos-setup
+./setup.sh            # home-level installs
+./setup.sh --full     # + sudo system tweaks
+```
+
+**`setup.sh` flags:** `--full` (add sudo/reboot steps) · `--skip-opencode` ·
+`--skip-hermes` · `--skip-gnome`. Idempotent — safe to re-run.
+
+> After the GNOME-extension step, log out and back in to activate them.
+
+---
+
 ## Contents
 
 | Path | What it is |
 |---|---|
+| `setup.sh` | One-shot installer for everything below |
 | `opencode-config/` | OpenCode AI coding assistant configuration + MCP servers + plugins + skills |
 | `hermes-opencode/` | Keyless Hermes Agent, routed through OpenCode Zen (no API key) |
 | `gnome-extensions/` | Auto-move-to-workspace + touchpad scroll control extensions |
