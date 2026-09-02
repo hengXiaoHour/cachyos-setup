@@ -80,30 +80,46 @@ say() { printf '\n%s==> %s%s\n' "$_CYAN" "$*" "$_NC"; }
 ok()  { printf '%s    ✓ %s%s\n' "$_GREEN" "$*" "$_NC"; }
 warn(){ printf '%s    ! %s%s\n' "$_YLW" "$*" "$_NC"; }
 
-# A TTY is required to honor a skip decision interactively.
+# A TTY is required to prompt. Even when piped via `curl | bash` (stdin is the
+# script, not a terminal), we can still prompt through /dev/tty so the guide
+# actually asks the user instead of silently installing everything.
 HAS_TTY=0
-[[ -t 0 ]] && HAS_TTY=1
+if [[ -e /dev/tty ]] && { exec 9<>/dev/tty; } 2>/dev/null; then
+  HAS_TTY=1
+fi
+
+# Open a prompt channel: prefer /dev/tty (works even when piped), else stdin.
+prompt_read() {
+  if [[ "$HAS_TTY" -eq 1 ]]; then
+    # /dev/tty is already open as fd 9
+    read -r -u 9 "$1" || true
+  else
+    read -r "$1" || true
+  fi
+}
 
 # ask <var> <label> — returns: yes/no based on -y, --skip-*, or user input.
 ask() {
-  # $1 receives the result via nameref
   local __var="$1"; local __label="$2"
   local __default="y"
-  # default depends on which component we auto-skip by flag
+  # honor --skip-* flags first
   if [[ -n "${SKIP_MAP[$__label]:-}" ]] && [[ "${SKIP_MAP[$__label]}" = "1" ]]; then
     printf '%s    skipping %s (flagged)\n' "$_NC" "$__label"
     eval "$__var=n"; return
   fi
+  # -y/--yes: no questions, install everything
   if [[ "$YES" -eq 1 ]]; then
     eval "$__var=y"; return
   fi
+  # No TTY available at all and not -y: we cannot ask — default to SKIP (safe)
+  # and warn, so we never silently run sudo/system-modifying steps.
   if [[ "$HAS_TTY" -eq 0 ]]; then
-    # not a tty and not -y: can't ask, so install by default
-    eval "$__var=y"; return
+    printf '%s    ! no terminal, skipping %s (re-run with -y to auto-install)\n' "$_YLW" "$__label"
+    eval "$__var=n"; return
   fi
   local ans
   printf '%s    %s? [Y/n] ' "$_NC" "$__label"
-  read -r ans
+  prompt_read ans
   case "${ans:-$__default}" in
     y|Y|yes|YES|"") eval "$__var=y" ;;
     *) eval "$__var=n" ;;
