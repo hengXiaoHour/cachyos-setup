@@ -1,0 +1,7 @@
+# Never commit secrets (there are none here, but keep the guard)
+.env
+auth.json
+*.db
+*.log
+__pycache__/
+*.py[cod]

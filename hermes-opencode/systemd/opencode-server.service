@@ -1,0 +1,14 @@
+[Unit]
+Description=OpenCode native server (127.0.0.1:4096)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Documents/Default Project
+ExecStart=%h/.local/bin/opencode serve --port 4096 --hostname 127.0.0.1
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
