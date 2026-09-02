@@ -89,13 +89,17 @@ if [[ -e /dev/tty ]] && { exec 9<>/dev/tty; } 2>/dev/null; then
   HAS_TTY=1
 fi
 
-# Open a prompt channel: prefer /dev/tty (works even when piped), else stdin.
+# Prompt channel. CRITICAL: we never read from stdin (fd 0) for prompts — when
+# the script is piped via `curl | bash`, stdin IS the script, so reading it
+# consumes the script's own remaining lines and corrupts execution (causing the
+# mid-run relaunch). Only /dev/tty is a safe prompt source.
 prompt_read() {
   if [[ "$HAS_TTY" -eq 1 ]]; then
     # /dev/tty is already open as fd 9
     read -r -u 9 "$1" || true
   else
-    read -r "$1" || true
+    # No terminal: do NOT read stdin. Default the variable to empty (skip).
+    eval "$1=''"
   fi
 }
 
