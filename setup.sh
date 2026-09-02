@@ -1,66 +1,136 @@
 #!/usr/bin/env bash
 # =============================================================================
-# CachyOS Setup — one-shot installer
+# CachyOS Setup — guided installer
 #
-# Installs everything in this repo:
+# Walks you through each component one by one. For each you can press:
+#   y / Enter  -> install it   |   n  -> skip it and move to the next step
+#
+# Components:
 #   1. OpenCode config + plugins + skills
 #   2. Hermes Agent (keyless via OpenCode Zen)
 #   3. GNOME extensions (auto-move-to-workspace + touchpad)
-#   4. System tweak scripts (boot, touchpad, dash-to-panel, bloatware)
+#   4. ptyxis terminal
+#   5. Boot optimization (sudo)
+#   6. Touchpad scroll fix (sudo)
+#   7. Dash-to-Panel preset
+#   8. Remove bloatware (sudo)
 #
-# Run in a cloned repo:
-#   ./setup.sh                 # everything that can run in $HOME, no prompts
-#   ./setup.sh --full          # ...plus the scripts that need sudo / log-out
-#
-# Or straight from the web (no clone needed):
+# Usage:
 #   curl -fsSL https://raw.githubusercontent.com/hengXiaoHour/cachyos-setup/master/setup.sh | bash
-#   # for the full sudo+GUI pass:
-#   curl -fsSL .../setup.sh | bash -s -- --full
+#   # fully non-interactive (install EVERYTHING): use -y
+#   curl -fsSL .../setup.sh | bash -s -- -y
+#   # in a local clone:
+#   ./setup.sh
+#   ./setup.sh -y
 #
 # Flags:
-#   --full        Also run the sudo/reboot-requiring steps (boot, bloatware,
-#                 dash-to-panel, touchpad-scroll). Skips anything needing a
-#                 manual interaction.
-#   --skip-opencode  Skip the OpenCode config copy
-#   --skip-hermes    Skip the Hermes keyless install
-#   --skip-gnome     Skip the GNOME extension install
-#   --no-sudo        Never invoke sudo (auto-added by default when needed)
+#   -y, --yes        Non-interactive: install everything without prompting
+#   --skip-opencode  Skip a specific component (composable)
+#   --skip-hermes
+#   --skip-gnome
+#   --skip-ptyxis
+#   --skip-boot
+#   --skip-touchpad
+#   --skip-dash
+#   --skip-bloatware
 #
 # Idempotent: safe to re-run; already-installed components are skipped.
 # =============================================================================
-set -euo pipefail
+set -uo pipefail
 
-FULL=0
-SKIP_OPENCODE=0
-SKIP_HERMES=0
-SKIP_GNOME=0
+YES=0
+SKIP_OPENCODE=0; SKIP_HERMES=0; SKIP_GNOME=0; SKIP_PTYXIS=0
+SKIP_BOOT=0; SKIP_TOUCHPAD=0; SKIP_DASH=0; SKIP_BLOATWARE=0
+SUDO="sudo"
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --full) FULL=1 ;;
-    --skip-opencode) SKIP_OPENCODE=1 ;;
-    --skip-hermes)   SKIP_HERMES=1 ;;
-    --skip-gnome)    SKIP_GNOME=1 ;;
+    -y|--yes) YES=1 ;;
+    --skip-opencode)  SKIP_OPENCODE=1 ;;
+    --skip-hermes)    SKIP_HERMES=1 ;;
+    --skip-gnome)     SKIP_GNOME=1 ;;
+    --skip-ptyxis)    SKIP_PTYXIS=1 ;;
+    --skip-boot)      SKIP_BOOT=1 ;;
+    --skip-touchpad)  SKIP_TOUCHPAD=1 ;;
+    --skip-dash)      SKIP_DASH=1 ;;
+    --skip-bloatware) SKIP_BLOATWARE=1 ;;
     --no-sudo) SUDO="" ;;
     *) echo "Unknown option: $1" >&2; exit 2 ;;
   esac
   shift
 done
 
-# Locate the repo dir. When piped via curl, we are run from stdin with cwd=~
-# and the repo files aren't present — flag that clearly.
+# --- Locate repo: local clone if present, else note the remote-pipe case -----
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-.}")" 2>/dev/null && pwd)"
+REMOTE_PIPE=0
 if [[ ! -f "$REPO_DIR/setup.sh" ]]; then
-  echo "NOTE: running from a remote pipe (no local repo). Only home-level installs run." >&2
+  REMOTE_PIPE=1
   REPO_DIR="$HOME/cachyos-setup"
 fi
-SUDO="${SUDO:-sudo}"
+# For remote-pipe we need the repo files to apply configs; pull a shallow clone.
+if [[ "$REMOTE_PIPE" -eq 1 && ! -d "$REPO_DIR/.git" ]]; then
+  echo "==> Cloning cachyos-setup to $REPO_DIR (needed to apply configs)..."
+  git clone --depth 1 https://github.com/hengXiaoHour/cachyos-setup.git "$REPO_DIR" 2>/dev/null \
+    || { echo "ERROR: could not clone repo" >&2; exit 1; }
+fi
 
-say() { printf '\n\033[1;36m==> %s\033[0m\n' "$*"; }
-ok()  { printf '\033[1;32m    %s\033[0m\n' "$*"; }
+# --- Helpers -----------------------------------------------------------------
+_CYAN=$'\033[1;36m'; _GREEN=$'\033[1;32m'; _YLW=$'\033[1;33m'; _NC=$'\033[0m'
+say() { printf '\n%s==> %s%s\n' "$_CYAN" "$*" "$_NC"; }
+ok()  { printf '%s    ✓ %s%s\n' "$_GREEN" "$*" "$_NC"; }
+warn(){ printf '%s    ! %s%s\n' "$_YLW" "$*" "$_NC"; }
 
-# --- 1. OpenCode config + plugins + skills ---------------------------------
-if [[ "$SKIP_OPENCODE" -eq 0 ]]; then
-  say "[1/4] OpenCode config + plugins + skills"
+# A TTY is required to honor a skip decision interactively.
+HAS_TTY=0
+[[ -t 0 ]] && HAS_TTY=1
+
+# ask <var> <label> — returns: yes/no based on -y, --skip-*, or user input.
+ask() {
+  # $1 receives the result via nameref
+  local __var="$1"; local __label="$2"
+  local __default="y"
+  # default depends on which component we auto-skip by flag
+  if [[ -n "${SKIP_MAP[$__label]:-}" ]] && [[ "${SKIP_MAP[$__label]}" = "1" ]]; then
+    printf '%s    skipping %s (flagged)\n' "$_NC" "$__label"
+    eval "$__var=n"; return
+  fi
+  if [[ "$YES" -eq 1 ]]; then
+    eval "$__var=y"; return
+  fi
+  if [[ "$HAS_TTY" -eq 0 ]]; then
+    # not a tty and not -y: can't ask, so install by default
+    eval "$__var=y"; return
+  fi
+  local ans
+  printf '%s    %s? [Y/n] ' "$_NC" "$__label"
+  read -r ans
+  case "${ans:-$__default}" in
+    y|Y|yes|YES|"") eval "$__var=y" ;;
+    *) eval "$__var=n" ;;
+  esac
+}
+
+# Map label -> skip flag so ask() can auto-honor --skip-* flags
+declare -A SKIP_MAP
+SKIP_MAP[OpenCode config]="$SKIP_OPENCODE"
+SKIP_MAP[Hermes Agent]="$SKIP_HERMES"
+SKIP_MAP[GNOME extensions]="$SKIP_GNOME"
+SKIP_MAP[ptyxis terminal]="$SKIP_PTYXIS"
+SKIP_MAP[Boot optimization]="$SKIP_BOOT"
+SKIP_MAP[Touchpad scroll fix]="$SKIP_TOUCHPAD"
+SKIP_MAP[Dash-to-Panel preset]="$SKIP_DASH"
+SKIP_MAP[Remove bloatware]="$SKIP_BLOATWARE"
+
+printf '%s\n' "$_CYAN"
+printf '=====================================================\n'
+printf '  CachyOS Setup — guided installer\n'
+printf '  Answer y/n for each step. Press Enter = yes.\n'
+printf '=====================================================%s\n' "$_NC"
+
+# ---- 1. OpenCode config + plugins + skills ---------------------------------
+ask a "OpenCode config"
+if [[ "$a" = "y" ]]; then
+  say "[1/8] OpenCode config + plugins + skills"
   mkdir -p ~/.config/opencode/{plugins,mcp-servers,skills} ~/obsidian-vault/opencode
   cp -rn "$REPO_DIR/opencode-config/opencode.jsonc" ~/.config/opencode/ 2>/dev/null || true
   for d in memory-mcp playwright-mcp subagent-orchestrator github-sync session-sync; do
@@ -73,68 +143,100 @@ if [[ "$SKIP_OPENCODE" -eq 0 ]]; then
   cp -rn "$REPO_DIR/opencode-config/skills/verify-before-handover" ~/.config/opencode/skills/ 2>/dev/null || true
   cp -n "$REPO_DIR/opencode-config/AGENTS.md" ~/.config/opencode/ 2>/dev/null || true
   ok "OpenCode config synced"
+else
+  warn "skipped OpenCode config"
 fi
 
-# --- 2. Hermes Agent (keyless via OpenCode Zen) ----------------------------
-if [[ "$SKIP_HERMES" -eq 0 ]]; then
-  say "[2/4] Hermes Agent (keyless via OpenCode Zen)"
+# ---- 2. Hermes Agent --------------------------------------------------------
+ask a "Hermes Agent"
+if [[ "$a" = "y" ]]; then
+  say "[2/8] Hermes Agent (keyless via OpenCode Zen)"
   if command -v hermes >/dev/null 2>&1; then
     ok "hermes already installed"
   elif [[ -x "$REPO_DIR/hermes-opencode/install.sh" ]]; then
     (cd "$REPO_DIR/hermes-opencode" && ./install.sh)
   else
-    # Remote-pipe path: run the bundle's installer if we have it cached, else
-    # just the keyless Heremes bootstrap without the local skill files.
     curl -fsSL https://raw.githubusercontent.com/hengXiaoHour/cachyos-setup/master/hermes-opencode/install.sh | bash
   fi
+else
+  warn "skipped Hermes Agent"
 fi
 
-# --- 3. GNOME extensions -----------------------------------------------------
-if [[ "$SKIP_GNOME" -eq 0 ]]; then
-  say "[3/4] GNOME extensions (auto-move + touchpad)"
+# ---- 3. GNOME extensions ----------------------------------------------------
+ask a "GNOME extensions"
+if [[ "$a" = "y" ]]; then
+  say "[3/8] GNOME extensions (auto-move + touchpad)"
   if [[ -x "$REPO_DIR/gnome-extensions/install.sh" ]]; then
     (cd "$REPO_DIR/gnome-extensions" && ./install.sh) \
-      || ok "extensions staged — log out/in to activate (log-out step is skipped in --full)"
+      || warn "extensions staged — log out/in to activate later"
   else
-    ok "skipping (no gnome-extensions dir available)"
-  fi
-fi
-
-# --- 4. System tweaks (only with --full, or explicit) ------------------------
-say "[4/4] System tweaks"
-if [[ "$FULL" -eq 1 ]]; then
-  # Boot optimization (needs sudo)
-  if [[ -x "$REPO_DIR/optimize-boot.sh" ]]; then
-    echo "    Running optimize-boot.sh (sudo)..."
-    (cd "$REPO_DIR" && "$SUDO" ./optimize-boot.sh) || echo "    skipped"
-  fi
-  # Limine fast boot
-  if [[ -f /boot/limine.conf ]]; then
-    echo "    Skipping Limine changes (would affect /boot; edit manually per README §7)"
-  fi
-  # Touchpad scroll factor (needs sudo + meson/ninja)
-  if [[ -x "$REPO_DIR/fix-touchpad-scroll-arch.sh" ]]; then
-    echo "    Running fix-touchpad-scroll-arch.sh (sudo)..."
-    (cd "$REPO_DIR" && bash fix-touchpad-scroll-arch.sh) || echo "    skipped"
-  fi
-  # Dash to panel preset
-  if command -v gnome-shell >/dev/null 2>&1; then
-    echo "    Applying dash-to-panel preset..."
-    (cd "$REPO_DIR" && bash dash-to-panel-preset.sh) || echo "    skipped"
-  else
-    echo "    Skipping dash-to-panel (gnome-shell not found)"
-  fi
-  # Bloatware removal (sudo) — opt-in by default, run only with --full
-  if [[ -x "$REPO_DIR/remove-bloatware.sh" ]]; then
-    echo "    Running remove-bloatware.sh (sudo)..."
-    (cd "$REPO_DIR" && "$SUDO" bash remove-bloatware.sh) || echo "    skipped"
+    warn "no gnome-extensions dir available"
   fi
 else
-  echo "    Skipped (pass --full to run sudo/reboot-requiring tweaks)"
+  warn "skipped GNOME extensions"
+fi
+
+# ---- 4. ptyxis terminal -----------------------------------------------------
+ask a "ptyxis terminal"
+if [[ "$a" = "y" ]]; then
+  say "[4/8] Installing ptyxis terminal (GNOME terminal emulator)"
+  if command -v ptyxis >/dev/null 2>&1 || pacman -Q ptyxis >/dev/null 2>&1; then
+    ok "ptyxis already installed"
+  else
+    [[ -n "$SUDO" ]] && "$SUDO" pacman -S --noconfirm ptyxis || warn "could not install ptyxis (needs sudo)"
+  fi
+else
+  warn "skipped ptyxis"
+fi
+
+# ---- 5. Boot optimization ---------------------------------------------------
+ask a "Boot optimization"
+if [[ "$a" = "y" ]]; then
+  say "[5/8] Boot optimization (disables slow services)"
+  [[ -x "$REPO_DIR/optimize-boot.sh" ]] \
+    && (cd "$REPO_DIR" && "$SUDO" ./optimize-boot.sh) \
+    || warn "optimize-boot.sh not found or failed"
+else
+  warn "skipped boot optimization"
+fi
+
+# ---- 6. Touchpad scroll fix -------------------------------------------------
+ask a "Touchpad scroll fix"
+if [[ "$a" = "y" ]]; then
+  say "[6/8] Touchpad scroll speed (Wayland Scroll Factor)"
+  [[ -x "$REPO_DIR/fix-touchpad-scroll-arch.sh" ]] \
+    && (cd "$REPO_DIR" && bash fix-touchpad-scroll-arch.sh) \
+    || warn "fix-touchpad-scroll-arch.sh not found or failed"
+else
+  warn "skipped touchpad scroll fix"
+fi
+
+# ---- 7. Dash-to-Panel preset ------------------------------------------------
+ask a "Dash-to-Panel preset"
+if [[ "$a" = "y" ]]; then
+  say "[7/8] Dash-to-Panel unified taskbar preset"
+  if command -v gnome-shell >/dev/null 2>&1; then
+    (cd "$REPO_DIR" && bash dash-to-panel-preset.sh) || warn "dash-to-panel preset failed"
+  else
+    warn "gnome-shell not found — skipping"
+  fi
+else
+  warn "skipped Dash-to-Panel preset"
+fi
+
+# ---- 8. Remove bloatware ----------------------------------------------------
+ask a "Remove bloatware"
+if [[ "$a" = "y" ]]; then
+  say "[8/8] Remove CachyOS bloatware (keeps ptyxis)"
+  [[ -x "$REPO_DIR/remove-bloatware.sh" ]] \
+    && (cd "$REPO_DIR" && "$SUDO" bash remove-bloatware.sh) \
+    || warn "remove-bloatware.sh not found or failed"
+else
+  warn "skipped bloatware removal"
 fi
 
 say "Done!"
 echo "  - OpenCode: run 'opencode' (or flatpak run ai.opencode.opencode)"
 echo "  - Hermes:   run 'hermes chat -q \"hi\"'"
-echo "  - GNOME:    log out/in to activate extensions"
-echo "  - System:   re-run with --full if you want the sudo tweaks"
+echo "  - GNOME:    log out/in to activate extensions (if installed)"
+echo "  - ptyxis:   launch from your app grid"

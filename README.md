@@ -13,30 +13,28 @@ tools or dependencies beyond what each script documents.
 
 ---
 
-## Quick Start — one-line install
+## Quick Start — guided one-line install
 
 ```bash
-# Everything that installs into your $HOME (OpenCode config + keyless Hermes):
+# Guided: asks you Y/n for each step (Enter = yes, n = skip & move on)
 curl -fsSL https://raw.githubusercontent.com/hengXiaoHour/cachyos-setup/master/setup.sh | bash
 
-# Add the sudo/GUI-requiring system tweaks (boot, touchpad, dash-to-panel,
-# bloatware removal):
-curl -fsSL https://raw.githubusercontent.com/hengXiaoHour/cachyos-setup/master/setup.sh | bash -s -- --full
+# Fully automatic: installs EVERYTHING with zero prompts
+curl -fsSL https://raw.githubusercontent.com/hengXiaoHour/cachyos-setup/master/setup.sh | bash -s -- -y
 ```
 
-Or from a local clone:
+The guided walkthrough covers **8 steps**: OpenCode config → Hermes Agent (keyless) →
+GNOME extensions → **ptyxis terminal** → Boot optimization → Touchpad scroll →
+Dash-to-Panel preset → Bloatware removal. Re-run anytime to add what you skipped.
 
-```bash
-git clone https://github.com/hengXiaoHour/cachyos-setup ~/cachyos-setup
-cd ~/cachyos-setup
-./setup.sh            # home-level installs
-./setup.sh --full     # + sudo system tweaks
-```
+Or from a local clone (`./setup.sh` or `./setup.sh -y`).
 
-**`setup.sh` flags:** `--full` (add sudo/reboot steps) · `--skip-opencode` ·
-`--skip-hermes` · `--skip-gnome`. Idempotent — safe to re-run.
+**`setup.sh` flags:** `-y`/`--yes` (no prompts) · `--skip-opencode` ·
+`--skip-hermes` · `--skip-gnome` · `--skip-ptyxis` · `--skip-boot` ·
+`--skip-touchpad` · `--skip-dash` · `--skip-bloatware`. Idempotent — safe to re-run.
 
 > After the GNOME-extension step, log out and back in to activate them.
+> The `sudo`-requiring steps (ptyxis, boot, bloatware) will prompt for your password.
 
 ---
 
@@ -44,7 +42,7 @@ cd ~/cachyos-setup
 
 | Path | What it is |
 |---|---|
-| `setup.sh` | One-shot installer for everything below |
+| `setup.sh` | Guided one-line installer (Y/n for each step, or `-y` for all) |
 | `opencode-config/` | OpenCode AI coding assistant configuration + MCP servers + plugins + skills |
 | `hermes-opencode/` | Keyless Hermes Agent, routed through OpenCode Zen (no API key) |
 | `gnome-extensions/` | Auto-move-to-workspace + touchpad scroll control extensions |
