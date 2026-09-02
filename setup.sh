@@ -9,7 +9,7 @@
 #   1. OpenCode config + plugins + skills
 #   2. Hermes Agent (keyless via OpenCode Zen)
 #   3. GNOME extensions (auto-move-to-workspace + touchpad)
-#   4. ptyxis terminal
+#   4. ProtonVPN GUI (CLI + GTK app)
 #   5. Boot optimization (sudo)
 #   6. Touchpad scroll fix (sudo)
 #   7. Dash-to-Panel preset
@@ -28,7 +28,7 @@
 #   --skip-opencode  Skip a specific component (composable)
 #   --skip-hermes
 #   --skip-gnome
-#   --skip-ptyxis
+#   --skip-proton
 #   --skip-boot
 #   --skip-touchpad
 #   --skip-dash
@@ -39,7 +39,7 @@
 set -uo pipefail
 
 YES=0
-SKIP_OPENCODE=0; SKIP_HERMES=0; SKIP_GNOME=0; SKIP_PTYXIS=0
+SKIP_OPENCODE=0; SKIP_HERMES=0; SKIP_GNOME=0; SKIP_PROTON=0
 SKIP_BOOT=0; SKIP_TOUCHPAD=0; SKIP_DASH=0; SKIP_BLOATWARE=0
 SUDO="sudo"
 
@@ -49,7 +49,7 @@ while [[ $# -gt 0 ]]; do
     --skip-opencode)  SKIP_OPENCODE=1 ;;
     --skip-hermes)    SKIP_HERMES=1 ;;
     --skip-gnome)     SKIP_GNOME=1 ;;
-    --skip-ptyxis)    SKIP_PTYXIS=1 ;;
+    --skip-proton)    SKIP_PROTON=1 ;;
     --skip-boot)      SKIP_BOOT=1 ;;
     --skip-touchpad)  SKIP_TOUCHPAD=1 ;;
     --skip-dash)      SKIP_DASH=1 ;;
@@ -131,7 +131,7 @@ declare -A SKIP_MAP
 SKIP_MAP[OpenCode config]="$SKIP_OPENCODE"
 SKIP_MAP[Hermes Agent]="$SKIP_HERMES"
 SKIP_MAP[GNOME extensions]="$SKIP_GNOME"
-SKIP_MAP[ptyxis terminal]="$SKIP_PTYXIS"
+SKIP_MAP[ProtonVPN GUI]="$SKIP_PROTON"
 SKIP_MAP[Boot optimization]="$SKIP_BOOT"
 SKIP_MAP[Touchpad scroll fix]="$SKIP_TOUCHPAD"
 SKIP_MAP[Dash-to-Panel preset]="$SKIP_DASH"
@@ -192,17 +192,18 @@ else
   warn "skipped GNOME extensions"
 fi
 
-# ---- 4. ptyxis terminal -----------------------------------------------------
-ask a "ptyxis terminal"
+# ---- 4. ProtonVPN GUI -------------------------------------------------------
+ask a "ProtonVPN GUI"
 if [[ "$a" = "y" ]]; then
-  say "[4/8] Installing ptyxis terminal (GNOME terminal emulator)"
-  if command -v ptyxis >/dev/null 2>&1 || pacman -Q ptyxis >/dev/null 2>&1; then
-    ok "ptyxis already installed"
+  say "[4/8] Installing ProtonVPN GUI + CLI"
+  if pacman -Q proton-vpn-gtk-app >/dev/null 2>&1; then
+    ok "ProtonVPN already installed"
   else
-    [[ -n "$SUDO" ]] && "$SUDO" pacman -S --noconfirm ptyxis || warn "could not install ptyxis (needs sudo)"
+    [[ -n "$SUDO" ]] && "$SUDO" pacman -S --noconfirm proton-vpn-cli proton-vpn-gtk-app wireguard-tools \
+      || warn "could not install ProtonVPN (needs sudo)"
   fi
 else
-  warn "skipped ptyxis"
+  warn "skipped ProtonVPN GUI"
 fi
 
 # ---- 5. Boot optimization ---------------------------------------------------
@@ -243,7 +244,7 @@ fi
 # ---- 8. Remove bloatware ----------------------------------------------------
 ask a "Remove bloatware"
 if [[ "$a" = "y" ]]; then
-  say "[8/8] Remove CachyOS bloatware (keeps ptyxis)"
+  say "[8/8] Remove CachyOS bloatware"
   [[ -x "$REPO_DIR/remove-bloatware.sh" ]] \
     && (cd "$REPO_DIR" && "$SUDO" bash remove-bloatware.sh) \
     || warn "remove-bloatware.sh not found or failed"
@@ -255,4 +256,3 @@ say "Done!"
 echo "  - OpenCode: run 'opencode' (or flatpak run ai.opencode.opencode)"
 echo "  - Hermes:   run 'hermes chat -q \"hi\"'"
 echo "  - GNOME:    log out/in to activate extensions (if installed)"
-echo "  - ptyxis:   launch from your app grid"

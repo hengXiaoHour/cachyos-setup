@@ -24,17 +24,17 @@ curl -fsSL https://raw.githubusercontent.com/hengXiaoHour/cachyos-setup/master/s
 ```
 
 The guided walkthrough covers **8 steps**: OpenCode config → Hermes Agent (keyless) →
-GNOME extensions → **ptyxis terminal** → Boot optimization → Touchpad scroll →
+GNOME extensions → **ProtonVPN GUI** → Boot optimization → Touchpad scroll →
 Dash-to-Panel preset → Bloatware removal. Re-run anytime to add what you skipped.
 
 Or from a local clone (`./setup.sh` or `./setup.sh -y`).
 
 **`setup.sh` flags:** `-y`/`--yes` (no prompts) · `--skip-opencode` ·
-`--skip-hermes` · `--skip-gnome` · `--skip-ptyxis` · `--skip-boot` ·
+`--skip-hermes` · `--skip-gnome` · `--skip-proton` · `--skip-boot` ·
 `--skip-touchpad` · `--skip-dash` · `--skip-bloatware`. Idempotent — safe to re-run.
 
 > After the GNOME-extension step, log out and back in to activate them.
-> The `sudo`-requiring steps (ptyxis, boot, bloatware) will prompt for your password.
+> The `sudo`-requiring steps (ProtonVPN, boot, bloatware) will prompt for your password.
 
 ---
 
