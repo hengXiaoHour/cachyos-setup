@@ -12,7 +12,6 @@ sudo pacman -Rns --noconfirm \
   gnome-calculator \
   meld \
   loupe \
-  ptyxis \
   gnome-text-editor \
   gnome-power-manager \
   sushi \
