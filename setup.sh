@@ -2,8 +2,9 @@
 # =============================================================================
 # CachyOS Setup — guided installer
 #
-# Walks you through each component one by one. For each you can press:
-#   y / Enter  -> install it   |   n  -> skip it and move to the next step
+# Walks you through each component one by one. For each you press:
+#   y  -> install it   |   anything else (n / Enter / no input) -> skip it
+# SAFE DEFAULT: nothing installs unless you explicitly type y.
 #
 # Components:
 #   1. OpenCode config + plugins + skills
@@ -101,7 +102,9 @@ prompt_read() {
 # ask <var> <label> — returns: yes/no based on -y, --skip-*, or user input.
 ask() {
   local __var="$1"; local __label="$2"
-  local __default="y"
+  # DEFAULT IS "no": nothing installs unless the user explicitly types y.
+  # This guarantees an unanswered/EOF prompt NEVER silently installs a step.
+  local __default="n"
   # honor --skip-* flags first
   if [[ -n "${SKIP_MAP[$__label]:-}" ]] && [[ "${SKIP_MAP[$__label]}" = "1" ]]; then
     printf '%s    skipping %s (flagged)\n' "$_NC" "$__label"
@@ -118,11 +121,11 @@ ask() {
     eval "$__var=n"; return
   fi
   local ans
-  printf '%s    %s? [Y/n] ' "$_NC" "$__label"
+  printf '%s    %s? [y/N] ' "$_NC" "$__label"
   prompt_read ans
   case "${ans:-$__default}" in
-    y|Y|yes|YES|"") eval "$__var=y" ;;
-    *) eval "$__var=n" ;;
+    y|Y|yes|YES) eval "$__var=y" ;;
+    *) eval "$__var=n" ;;   # includes Enter/empty/EOF → skip (safe)
   esac
 }
 
@@ -140,7 +143,7 @@ SKIP_MAP[Remove bloatware]="$SKIP_BLOATWARE"
 printf '%s\n' "$_CYAN"
 printf '=====================================================\n'
 printf '  CachyOS Setup — guided installer\n'
-printf '  Answer y/n for each step. Press Enter = yes.\n'
+printf '  Answer y for each step you want. Enter/anything = skip.\n'
 printf '=====================================================%s\n' "$_NC"
 
 # ---- 1. OpenCode config + plugins + skills ---------------------------------

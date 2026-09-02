@@ -16,7 +16,7 @@ tools or dependencies beyond what each script documents.
 ## Quick Start — guided one-line install
 
 ```bash
-# Guided: asks you Y/n for each step (Enter = yes, n = skip & move on)
+# Guided: type y for each step you want. Enter/anything = skip (safe default).
 curl -fsSL https://raw.githubusercontent.com/hengXiaoHour/cachyos-setup/master/setup.sh | bash
 
 # Fully automatic: installs EVERYTHING with zero prompts
@@ -27,13 +27,32 @@ The guided walkthrough covers **8 steps**: OpenCode config → Hermes Agent (key
 GNOME extensions → **ProtonVPN GUI** → Boot optimization → Touchpad scroll →
 Dash-to-Panel preset → Bloatware removal. Re-run anytime to add what you skipped.
 
+> **Safe default:** nothing installs unless you explicitly type `y`. An unanswered
+> or interrupted prompt skips that step rather than installing it.
+
 Or from a local clone (`./setup.sh` or `./setup.sh -y`).
 
 **`setup.sh` flags:** `-y`/`--yes` (no prompts) · `--skip-opencode` ·
 `--skip-hermes` · `--skip-gnome` · `--skip-proton` · `--skip-boot` ·
 `--skip-touchpad` · `--skip-dash` · `--skip-bloatware`. Idempotent — safe to re-run.
 
-> After the GNOME-extension step, log out and back in to activate them.
+## Uninstall / revert
+
+Every step can be reverted. Removed items are backed up to `~/.cachyos-backup/` first.
+
+```bash
+# Guided revert (y per step you want to undo; removed files are backed up)
+curl -fsSL https://raw.githubusercontent.com/hengXiaoHour/cachyos-setup/master/uninstall.sh | bash
+
+# Revert EVERYTHING, no prompts
+curl -fsSL .../uninstall.sh | bash -s -- -y
+```
+
+**`uninstall.sh` flags:** `-y`/`--yes` · `--keep-opencode` · `--keep-hermes` ·
+`--keep-gnome` · `--keep-proton` · `--keep-boot` · `--keep-touchpad` ·
+`--keep-dash` · `--keep-bloatware` · `--keep-clone`.
+
+> After the GNOME-extension step, log out and back in to activate/unset them.
 > The `sudo`-requiring steps (ProtonVPN, boot, bloatware) will prompt for your password.
 
 ---
@@ -42,7 +61,8 @@ Or from a local clone (`./setup.sh` or `./setup.sh -y`).
 
 | Path | What it is |
 |---|---|
-| `setup.sh` | Guided one-line installer (Y/n for each step, or `-y` for all) |
+| `setup.sh` | Guided one-line installer (type `y` per step, or `-y` for all) |
+| `uninstall.sh` | Revert everything (backs up to `~/.cachyos-backup/`) |
 | `opencode-config/` | OpenCode AI coding assistant configuration + MCP servers + plugins + skills |
 | `hermes-opencode/` | Keyless Hermes Agent, routed through OpenCode Zen (no API key) |
 | `gnome-extensions/` | Auto-move-to-workspace + touchpad scroll control extensions |
