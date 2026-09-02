@@ -148,16 +148,26 @@ ask a "OpenCode config"
 if [[ "$a" = "y" ]]; then
   say "[1/8] OpenCode config + plugins + skills"
   mkdir -p ~/.config/opencode/{plugins,mcp-servers,skills} ~/obsidian-vault/opencode
-  cp -rn "$REPO_DIR/opencode-config/opencode.jsonc" ~/.config/opencode/ 2>/dev/null || true
   for d in memory-mcp playwright-mcp subagent-orchestrator github-sync session-sync; do
     mkdir -p ~/.config/opencode/plugins/"$d"
-    cp -rn "$REPO_DIR/opencode-config/$d/." ~/.config/opencode/plugins/"$d"/ 2>/dev/null || true
+    if ! cp -r "$REPO_DIR/opencode-config/$d/." ~/.config/opencode/plugins/"$d"/; then
+      warn "FAILED to copy OpenCode plugin: $d"; exit 1
+    fi
   done
+  if ! cp "$REPO_DIR/opencode-config/opencode.jsonc" ~/.config/opencode/; then
+    warn "FAILED to copy opencode.jsonc"; exit 1
+  fi
   mkdir -p ~/.config/opencode/mcp-servers
-  cp -rn "$REPO_DIR/opencode-config/mcp-servers/." ~/.config/opencode/mcp-servers/ 2>/dev/null || true
+  if ! cp -r "$REPO_DIR/opencode-config/mcp-servers/." ~/.config/opencode/mcp-servers/; then
+    warn "FAILED to copy MCP servers"; exit 1
+  fi
   mkdir -p ~/.config/opencode/skills
-  cp -rn "$REPO_DIR/opencode-config/skills/verify-before-handover" ~/.config/opencode/skills/ 2>/dev/null || true
-  cp -n "$REPO_DIR/opencode-config/AGENTS.md" ~/.config/opencode/ 2>/dev/null || true
+  if ! cp -r "$REPO_DIR/opencode-config/skills/verify-before-handover" ~/.config/opencode/skills/; then
+    warn "FAILED to copy verify-before-handover skill"; exit 1
+  fi
+  if ! cp "$REPO_DIR/opencode-config/AGENTS.md" ~/.config/opencode/; then
+    warn "FAILED to copy AGENTS.md"; exit 1
+  fi
   ok "OpenCode config synced"
 else
   warn "skipped OpenCode config"
