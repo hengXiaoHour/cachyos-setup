@@ -94,7 +94,7 @@ def darkness_of(gsframe):
     total = float(np.sum(hist))
     if total == 0:
         return 100.0
-    return float(np.ravel(hist)[0] / total * 100)
+    return float(hist[0] / total * 100)
 
 
 def open_camera():
