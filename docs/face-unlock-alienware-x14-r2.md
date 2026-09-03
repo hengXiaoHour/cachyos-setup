@@ -106,7 +106,13 @@ linux-enable-ir-emitter still built from AUR with makepkg.
   auth sufficient pam_unix.so try_first_pass likeauth nullok
 
   Password still works as fallback. No emitter hook needed (native emitter).
-  TTY login (/etc/pam.d/login) untouched as emergency entry.
+  TTY login + su/su-l also face-first (2026-09-04):
+  su/su-l: howdy line inserted AFTER pam_rootok.so, so root -> user
+  stays passwordless and normal users get face, then unix fallback.
+  login: howdy line after pam_nologin.so, before system-local-login.
+  Backups at .bak-howdy. sshd/remote, passwd/chsh, and system-auth
+  deliberately untouched (no camera over SSH, no face for password
+  changes, no double-fire via includes).
 
 ## Step 7 - first sudo test: fallback works, frames too dark (2026-09-03)
 
