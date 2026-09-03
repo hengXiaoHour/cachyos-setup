@@ -72,7 +72,15 @@ linux-enable-ir-emitter still built from AUR with makepkg.
   (dark without emitter, as expected). howdy test GUI cannot run from a
   headless session, deferred to user terminal on DISPLAY :0.
 
-## Step 3 - configure IR emitter (PENDING, interactive)
+## Step 3 - face enrolled, test-utility bug fixed (2026-09-03)
+
+  User ran sudo howdy add in own terminal: model enrolled for chenla OK.
+  sudo howdy test crashed: test.py:131 int(sum(hist)[0]) assumes calcHist
+  returns (8,1), opencv 5 returns flat, IndexError. Auth path (compare.py)
+  and enrollment (add.py) already use np.sum, unaffected. Fixed locally with
+  the same one-liner, syntax checked. Emitter configure still pending.
+
+## Step 4 - configure IR emitter (PENDING, interactive, user terminal)
 
   linux-enable-ir-emitter configure
 
@@ -80,7 +88,7 @@ Follow the wizard, answer Y/N on whether the preview flashes.
 Upstream warns probing can in theory corrupt camera firmware.
 If auto-detect fails, retry in manual mode.
 
-## Step 4 - configure Howdy (PENDING)
+## Step 5 - configure Howdy (mostly DONE)
 
   sudo howdy config
   device_path = /dev/v4l/by-path/pci-0000:00:14.0-usb-0:7:1.2-video-index0
@@ -89,7 +97,7 @@ If auto-detect fails, retry in manual mode.
   sudo howdy add
   sudo howdy test
 
-## Step 5 - PAM (PENDING)
+## Step 6 - PAM (PENDING, after emitter + test pass)
 
 Top of /etc/pam.d/gdm-password and /etc/pam.d/sudo:
 
