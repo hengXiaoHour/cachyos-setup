@@ -11,8 +11,27 @@ import os, subprocess, io, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import howdy_common as H
 
-PREVIEW = "1 preview - IR feed (s=save r=revert q=quit)"
+PREVIEW = "1 preview - IR feed (1-5=preset s=save r=revert q=quit)"
 TUNING = "2 tuning - sliders"
+
+# Presets: (dark_threshold, certainty, max_height, upsample).
+# 1 = stock Howdy defaults, 5 = strictest. 2-4 trade strictness for speed.
+PRESETS = {
+    1: (60, 3.5, 320, 1, "stock defaults"),
+    2: (85, 4.0, 240, 1, "balanced"),
+    3: (90, 4.5, 160, 0, "fast"),
+    4: (95, 5.0, 120, 0, "fastest low-light"),
+    5: (70, 3.0, 320, 1, "strict"),
+}
+
+
+def apply_preset(n):
+    dark, cert, max_h, ups, name = PRESETS[n]
+    H.cv2.setTrackbarPos("dark", TUNING, dark)
+    H.cv2.setTrackbarPos("cert x10", TUNING, int(cert * 10))
+    H.cv2.setTrackbarPos("height", TUNING, max_h)
+    H.cv2.setTrackbarPos("up", TUNING, ups)
+    return f"preset {n} ({name}): dark={dark} cert={cert} height={max_h} up={ups}"
 
 
 def save_all(dark, cert, max_h, ups):
@@ -49,12 +68,15 @@ def revert_all():
 
 
 def draw_panel(dark, cert, max_h, ups, msg):
-    panel = H.np.zeros((280, 460, 3), dtype=H.np.uint8)
+    panel = H.np.zeros((400, 460, 3), dtype=H.np.uint8)
     lines = [f"dark   {dark}   (skip frames darker than this %)",
              f"cert   {cert:.1f}   (match below this, max 5.0)",
              f"height {max_h}   (smaller = faster)",
              f"up     {ups}   (0 fast / 1 accurate)",
-             "", "drag a slider, watch window 1,",
+             "",
+             "presets: 1 stock  2 balanced  3 fast",
+             "         4 fastest  5 strict",
+             "drag a slider or press 1-5, watch window 1,",
              "s = save  r = revert  q = quit", "", msg[-70:]]
     for i, ln in enumerate(lines):
         H.cv2.putText(panel, ln, (12, 30 + i * 28), H.cv2.FONT_HERSHEY_SIMPLEX,
@@ -137,6 +159,9 @@ def main():
             print(msg)
         elif key == ord("r"):
             msg = revert_all()
+            print(msg)
+        elif key in (ord("1"), ord("2"), ord("3"), ord("4"), ord("5")):
+            msg = apply_preset(int(chr(key)))
             print(msg)
 
     cam.release()
