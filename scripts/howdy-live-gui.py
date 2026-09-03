@@ -63,6 +63,8 @@ def draw_panel(dark, cert, max_h, ups, msg):
 
 
 def main():
+    if not H.ensure_sudo():
+        sys.exit(1)
     import time
     cfg = H.load_config()
     dark0 = int(float(cfg.get("video", "dark_threshold", fallback=85)))

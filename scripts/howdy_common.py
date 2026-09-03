@@ -47,6 +47,23 @@ def sudo_cmd(cmd):
     return subprocess.run(full, shell=True).returncode == 0
 
 
+def ensure_sudo():
+    """Cache sudo credentials BEFORE any GUI window opens.
+
+    Returns True if sudo is now cached. Prompts for the password
+    in the terminal, so call this as the first thing in main().
+    Without this, sudo calls made after cv2 windows open fail with
+    'unable to read password: Input/output error' because there is
+    no terminal to prompt on."""
+    if os.geteuid() == 0:
+        return True
+    r = subprocess.run(["sudo", "-v"])
+    if r.returncode != 0:
+        print("sudo authentication failed, cannot continue.")
+        return False
+    return True
+
+
 def load_models():
     """Returns (encodings, labels) from the same file real login uses."""
     with open(MODEL) as f:
@@ -81,11 +98,27 @@ def darkness_of(gsframe):
 
 
 def open_camera():
-    cam = cv2.VideoCapture(DEVICE)
-    if not cam.isOpened():
-        print(f"cannot open {DEVICE}. Close any app using the camera and retry.")
-        sys.exit(1)
-    return cam
+    # Try the raw node on V4L2 first: the /dev/v4l/by-path symlink
+    # makes OpenCV pick GStreamer, which fails with
+    # 'Could not read from resource'. V4L2 opens the IR node directly.
+    for target in (2, "/dev/video2", DEVICE):
+        try:
+            if isinstance(target, int):
+                cam = cv2.VideoCapture(target, cv2.CAP_V4L2)
+            elif target == DEVICE:
+                cam = cv2.VideoCapture(target)
+            else:
+                cam = cv2.VideoCapture(target, cv2.CAP_V4L2)
+        except Exception:
+            continue
+        if cam.isOpened():
+            return cam
+        try:
+            cam.release()
+        except Exception:
+            pass
+    print(f"cannot open {DEVICE} (/dev/video2). Close any app using the camera and retry.")
+    sys.exit(1)
 
 
 def detect_and_match(frame, gray, small, scale, detector, predictor, encoder,
@@ -133,12 +166,15 @@ def draw_circles(color, circles):
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, col, 2)
 
 
-def capture_model(cam, clahe, detector, predictor, encoder, dark_thr):
+def capture_model(cam, clahe, detector, predictor, encoder, dark_thr, label=None):
     """Capture ~5 good frames, average, append model. Same format as sudo howdy add."""
-    with open(MODEL) as f:
-        stored = json.load(f)
+    try:
+        with open(MODEL) as f:
+            stored = json.load(f)
+    except FileNotFoundError:
+        stored = []
     next_id = stored[-1]["id"] + 1 if stored else 0
-    label = f"Model #{next_id}"
+    label = label or f"Model #{next_id}"
     vecs, frames, dark_skip = [], 0, 0
     t_end = time.time() + 12
     while len(vecs) < 5 and time.time() < t_end and frames < 120:
