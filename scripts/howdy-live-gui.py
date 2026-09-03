@@ -7,7 +7,8 @@ Window 2 TUNING: sliders dark, cert x10, height, up. Panel shows values,
 
 Run: /usr/bin/python3 howdy-live-gui.py            (must be system python, not 3.11)
      /usr/bin/python3 howdy-live-gui.py --selftest (no camera needed)
-Keys (focus either window): s = save to real config, r = revert, q/ESC = quit."""
+Keys (focus either window): s = save to real config, r = revert, q/ESC = quit,
+  c = capture new face model (look straight, replaces sudo howdy add)."""
 import sys, os, json, time, subprocess, io, configparser
 
 SYS_PYTHON = "/usr/bin/python3"
@@ -122,6 +123,53 @@ def selftest():
     print("circle-draw OK")
     print("SELFTEST PASS")
 
+def capture_model(cam, clahe, detector, predictor, encoder, dark_thr):
+    """Capture ~5 good frames, average encodings, append model like sudo howdy add.
+    Returns message string. Same JSON format the CLI writes."""
+    with open(MODEL) as f:
+        stored = json.load(f)
+    next_id = stored[-1]["id"] + 1 if stored else 0
+    label = f"Model #{next_id}"
+    vecs, frames, dark_skip, multi_skip = [], 0, 0, 0
+    t_end = time.time() + 12
+    while len(vecs) < 5 and time.time() < t_end and frames < 120:
+        ok, frame = cam.read()
+        frames += 1
+        if not ok:
+            continue
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) if len(frame.shape) == 3 else frame
+        gray = clahe.apply(gray)
+        if darkness_of(gray) > dark_thr:
+            dark_skip += 1
+            continue
+        faces = detector(gray, 1)
+        if len(faces) != 1:
+            multi_skip += 1
+            continue
+        fl = faces[0]
+        try:
+            land = predictor(frame, fl)
+            vecs.append(np.array(encoder.compute_face_descriptor(frame, land, 1)))
+        except Exception:
+            continue
+    if not vecs:
+        return f"capture FAILED: no usable frame ({frames} tried, {dark_skip} dark)"
+    avg = np.mean(vecs, axis=0)
+    stored.append({"time": int(time.time()), "label": label, "id": next_id,
+                   "data": [avg.tolist()]})
+    text = json.dumps(stored)
+    if os.geteuid() == 0:
+        with open(MODEL, "w") as f:
+            f.write(text)
+    else:
+        r = subprocess.run(["sudo", "tee", MODEL], input=text.encode(),
+                           capture_output=True)
+        if r.returncode != 0:
+            return "capture FAILED to save (sudo?)"
+    fresh, _ = load_models()
+    return (f"captured {label} from {len(vecs)} frames "
+            f"({len(fresh)} encodings total) - affects next login only")
+
 def draw_panel(dark, cert, max_h, ups, msg):
     panel = np.zeros((300, 460, 3), dtype=np.uint8)
     lines = [f"dark   {dark}   (skip frames darker than this %)",
@@ -129,7 +177,8 @@ def draw_panel(dark, cert, max_h, ups, msg):
              f"height {max_h}   (smaller = faster)",
              f"up     {ups}   (0 fast / 1 accurate)",
              "", "drag a slider, watch window 1,",
-             "s = save  r = revert  q = quit", "", msg[-70:]]
+             "s = save  r = revert  q = quit",
+             "c = capture new model (look straight)", "", msg[-70:]]
     for i, ln in enumerate(lines):
         cv2.putText(panel, ln, (12, 30 + i * 28), cv2.FONT_HERSHEY_SIMPLEX,
                     0.6, (255, 255, 255), 1)
@@ -240,6 +289,11 @@ def main():
             print(msg)
         elif key == ord("r"):
             msg = revert_all()
+            print(msg)
+        elif key == ord("c"):
+            msg = "capturing... look straight, stay still"
+            print(msg)
+            msg = capture_model(cam, clahe, detector, predictor, encoder, dark_thr)
             print(msg)
 
     cam.release()
