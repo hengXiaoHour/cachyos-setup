@@ -15,6 +15,7 @@
 #   6. Touchpad scroll fix (sudo)
 #   7. Dash-to-Panel preset
 #   8. Remove bloatware (sudo)
+#   9. Face unlock - Alienware x14 R2 (Howdy + IR, sudo; enroll at camera)
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/hengXiaoHour/cachyos-setup/master/setup.sh | bash
@@ -34,6 +35,7 @@
 #   --skip-touchpad
 #   --skip-dash
 #   --skip-bloatware
+#   --skip-face
 #
 # Idempotent: safe to re-run; already-installed components are skipped.
 # =============================================================================
@@ -41,7 +43,7 @@ set -uo pipefail
 
 YES=0
 SKIP_OPENCODE=0; SKIP_HERMES=0; SKIP_GNOME=0; SKIP_PROTON=0
-SKIP_BOOT=0; SKIP_TOUCHPAD=0; SKIP_DASH=0; SKIP_BLOATWARE=0
+SKIP_BOOT=0; SKIP_TOUCHPAD=0; SKIP_DASH=0; SKIP_BLOATWARE=0; SKIP_FACE=0
 SUDO="sudo"
 
 while [[ $# -gt 0 ]]; do
@@ -55,6 +57,7 @@ while [[ $# -gt 0 ]]; do
     --skip-touchpad)  SKIP_TOUCHPAD=1 ;;
     --skip-dash)      SKIP_DASH=1 ;;
     --skip-bloatware) SKIP_BLOATWARE=1 ;;
+    --skip-face)      SKIP_FACE=1 ;;
     --no-sudo) SUDO="" ;;
     *) echo "Unknown option: $1" >&2; exit 2 ;;
   esac
@@ -143,6 +146,7 @@ SKIP_MAP[Boot optimization]="$SKIP_BOOT"
 SKIP_MAP[Touchpad scroll fix]="$SKIP_TOUCHPAD"
 SKIP_MAP[Dash-to-Panel preset]="$SKIP_DASH"
 SKIP_MAP[Remove bloatware]="$SKIP_BLOATWARE"
+SKIP_MAP[Face unlock]="$SKIP_FACE"
 
 printf '%s\n' "$_CYAN"
 printf '=====================================================\n'
@@ -261,7 +265,7 @@ fi
 # ---- 8. Remove bloatware ----------------------------------------------------
 ask a "Remove bloatware"
 if [[ "$a" = "y" ]]; then
-  say "[8/8] Remove CachyOS bloatware"
+  say "[8/9] Remove CachyOS bloatware"
   [[ -x "$REPO_DIR/remove-bloatware.sh" ]] \
     && (cd "$REPO_DIR" && "$SUDO" bash remove-bloatware.sh) \
     || warn "remove-bloatware.sh not found or failed"
@@ -269,7 +273,24 @@ else
   warn "skipped bloatware removal"
 fi
 
+# ---- 9. Face unlock (Alienware x14 R2: Howdy + IR) ---------------------------
+ask a "Face unlock"
+if [[ "$a" = "y" ]]; then
+  say "[9/9] Face unlock (Howdy + IR emitter, PAM: sudo/GDM/su/login)"
+  if [[ -x "$REPO_DIR/scripts/setup-face-unlock.sh" ]]; then
+    (cd "$REPO_DIR" && bash scripts/setup-face-unlock.sh) \
+      || warn "face-unlock setup failed"
+    echo "  - enroll at the camera: sudo howdy add"
+    echo "  - then: /usr/bin/python3 scripts/howdy-capture-gui.py"
+  else
+    warn "scripts/setup-face-unlock.sh not found"
+  fi
+else
+  warn "skipped face unlock"
+fi
+
 say "Done!"
 echo "  - OpenCode: run 'opencode' (or flatpak run ai.opencode.opencode)"
 echo "  - Hermes:   run 'hermes chat -q \"hi\"'"
 echo "  - GNOME:    log out/in to activate extensions (if installed)"
+echo "  - Face:     enroll at the camera with 'sudo howdy add' (if installed)"

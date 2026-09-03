@@ -277,7 +277,9 @@ bash scripts/setup-face-unlock.sh          # full install + wiring
 bash scripts/setup-face-unlock.sh --check  # report only, change nothing
 ```
 
-One script does packages, CPU-only python-dlib + howdy builds, IR emitter
+Also step 9 of the main one-line installer (`setup.sh`, `--skip-face`
+to opt out). One script does packages, CPU-only python-dlib + howdy builds,
+IR emitter
 install, IR config, and PAM wiring for sudo, GDM login/lock, su, and TTY
 login (password stays as fallback, SSH untouched). Then, in front of the
 camera: `sudo howdy add`, the capture GUI for 3-angle enrollment, the live
