@@ -70,6 +70,10 @@ curl -fsSL .../uninstall.sh | bash -s -- -y
 | `fix-touchpad-scroll-arch.sh` | Build + install Wayland Scroll Factor |
 | `dash-to-panel-preset.sh` | Apply a Windows-style unified taskbar preset |
 | `remove-bloatware.sh` | Remove pre-installed CachyOS bloatware |
+| `scripts/setup-face-unlock.sh` | Face unlock for Alienware x14 R2: Howdy + IR, PAM wired (sudo, GDM, su, login) |
+| `scripts/howdy-capture-gui.py` | Guided 3-angle face enrollment GUI |
+| `scripts/howdy-live-gui.py` | Live IR preview + clickable speed presets GUI |
+| `docs/face-unlock-alienware-x14-r2.md` | Full face-unlock build log, step by step |
 | `LICENSE` | MIT license |
 
 ---
@@ -262,6 +266,26 @@ and groups remaining bloat (Avahi, Qt V4L2) into a System folder.
 
 ```bash
 sudo pacman -S proton-vpn-cli proton-vpn-gtk-app wireguard-tools
+```
+
+---
+
+## 10. Face Unlock — Alienware x14 R2 (Howdy + IR)
+
+```bash
+bash scripts/setup-face-unlock.sh          # full install + wiring
+bash scripts/setup-face-unlock.sh --check  # report only, change nothing
+```
+
+One script does packages, CPU-only python-dlib + howdy builds, IR emitter
+install, IR config, and PAM wiring for sudo, GDM login/lock, su, and TTY
+login (password stays as fallback, SSH untouched). Then, in front of the
+camera: `sudo howdy add`, the capture GUI for 3-angle enrollment, the live
+GUI for speed presets. Full log in `docs/face-unlock-alienware-x14-r2.md`.
+
+```bash
+/usr/bin/python3 scripts/howdy-capture-gui.py   # guided 3-angle face1
+/usr/bin/python3 scripts/howdy-live-gui.py      # click preset 3 + SAVE
 ```
 
 ---
