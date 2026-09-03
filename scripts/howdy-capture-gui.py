@@ -3,7 +3,7 @@
 Preview shows your IR feed with face circles. Press c, look straight,
 stay still ~5s: it grabs 5 good frames, averages them, appends a model
 (Model #2, #3, ...) in the exact format sudo howdy add writes.
-Keys: c = capture new model, q/ESC = quit.
+Keys: c = capture new model, X twice = wipe ALL models, q/ESC = quit.
 For speed sliders use howdy-live-gui.py instead.
 
 Run: python3 howdy-capture-gui.py (auto-switches to system python if needed)"""
@@ -12,7 +12,14 @@ import os, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import howdy_common as H
 
-PREVIEW = "capture - IR feed (c=capture q=quit)"
+PREVIEW = "capture - IR feed (c=capture X twice=wipe q=quit)"
+
+
+def load_or_empty():
+    try:
+        return H.load_models()
+    except FileNotFoundError:
+        return [], [], []
 
 
 def main():
@@ -20,16 +27,18 @@ def main():
     dark_thr = float(cfg.get("video", "dark_threshold", fallback=85))
 
     print("loading models + dlib...", flush=True)
-    encodings, labels, stored = H.load_models()
-    print(f"you have {len(stored)} models: {H.model_labels(stored)}")
+    encodings, labels, stored = load_or_empty()
+    print(f"you have {len(stored)} models: {H.model_labels(stored)}" if stored
+          else "no models yet: press c to capture your first one")
     detector, predictor, encoder = H.init_dlib()
     cam = H.open_camera()
 
     clahe = H.cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     H.cv2.namedWindow(PREVIEW)
-    print("capture window open. c=capture q=quit.")
+    print("capture window open. c=capture X twice=wipe q=quit.")
 
     msg, fps, fps_n, fps_t0 = "press c and look straight", 0.0, 0, time.time()
+    wipe_armed = 0.0
     while True:
         ok, frame = cam.read()
         if not ok:
@@ -40,7 +49,9 @@ def main():
 
         dark_pct = H.darkness_of(gray)
         h, w = gray.shape[:2]
-        if dark_pct <= dark_thr:
+        if not encodings:
+            circles, status, ms = [], "no models yet, press c", 0.0
+        elif dark_pct <= dark_thr:
             circles, status, _, ms = H.detect_and_match(
                 frame, gray, gray, 1, detector, predictor, encoder,
                 encodings, labels, 1, 0.45)
@@ -69,7 +80,22 @@ def main():
             print(msg)
             msg = H.capture_model(cam, clahe, detector, predictor, encoder, dark_thr)
             print(msg)
-            encodings, labels, stored = H.load_models()
+            encodings, labels, stored = load_or_empty()
+            wipe_armed = 0.0
+        elif key == ord("X"):
+            if time.time() - wipe_armed < 5:
+                ok = H.sudo_cmd(f"rm -f '{H.MODEL}'")
+                if ok:
+                    encodings, labels, stored = [], [], []
+                    msg = "ALL models wiped - press c for a fresh one"
+                else:
+                    msg = "wipe FAILED (sudo?)"
+                print(msg)
+                wipe_armed = 0.0
+            else:
+                wipe_armed = time.time()
+                msg = "press X AGAIN within 5s to wipe ALL models"
+                print(msg)
 
     cam.release()
     H.cv2.destroyAllWindows()
