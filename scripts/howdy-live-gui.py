@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
-"""Howdy TUNING gui: two windows, sliders only, no enrollment.
-Window 1 PREVIEW: IR feed with face circles (green + name = match).
-Window 2 TUNING: sliders dark / cert x10 / height / up.
-Keys: s = save sliders to real login config, r = revert, q/ESC = quit.
-  1-5 = presets: 1 stock, 2 balanced, 3 fast, 4 fastest, 5 strict.
+"""Howdy TUNING gui: live IR preview with clickable preset buttons.
+Buttons across the top: 1-5 presets, SAVE writes to the real login
+config, UNDO reverts. Keys work too: 1-5, s, r, q/ESC.
 For new face models use howdy-capture-gui.py instead.
 
-Run: python3 howdy-live-gui.py (auto-switches to system python if needed)"""
+Run: /usr/bin/python3 howdy-live-gui.py"""
 import os, subprocess, io, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import howdy_common as H
 
-PREVIEW = "1 preview - IR feed (s=save r=revert q=quit)"
-TUNING = "2 tuning - sliders"
+PREVIEW = "tuner - click a preset, SAVE to keep"
 
 # Presets: (dark_threshold, certainty, max_height, upsample).
 # 1 = stock Howdy defaults, 5 = strictest. 2-4 trade strictness for speed.
@@ -26,13 +23,46 @@ PRESETS = {
 }
 
 
-def apply_preset(n):
+CLICKS = []  # pending mouse-button actions, drained by the main loop
+
+# Buttons drawn across the top of the preview: 5 presets + save + undo.
+BUTTONS = [
+    ("1", 1), ("2", 2), ("3", 3), ("4", 4), ("5", 5),
+    ("SAVE", "s"), ("UNDO", "r"),
+]
+BW, BH = 88, 30
+
+
+def preset_text(n):
     dark, cert, max_h, ups, name = PRESETS[n]
-    H.cv2.setTrackbarPos("dark", TUNING, dark)
-    H.cv2.setTrackbarPos("cert x10", TUNING, int(cert * 10))
-    H.cv2.setTrackbarPos("height", TUNING, max_h)
-    H.cv2.setTrackbarPos("up", TUNING, ups)
     return f"preset {n} ({name}): dark={dark} cert={cert} height={max_h} up={ups}"
+
+
+def draw_buttons(img):
+    for i, (label, _action) in enumerate(BUTTONS):
+        x0 = 4 + i * (BW + 4)
+        H.cv2.rectangle(img, (x0, 4), (x0 + BW, 4 + BH), (60, 60, 60), -1)
+        H.cv2.rectangle(img, (x0, 4), (x0 + BW, 4 + BH), (0, 255, 0), 1)
+        H.cv2.putText(img, label, (x0 + 8, 26),
+                      H.cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
+
+
+def button_at(x, y):
+    if y < 4 or y > 4 + BH:
+        return None
+    i = (x - 4) // (BW + 4)
+    if 0 <= i < len(BUTTONS):
+        x0 = 4 + i * (BW + 4)
+        if x0 <= x <= x0 + BW:
+            return BUTTONS[i][1]
+    return None
+
+
+def on_mouse(event, x, y, flags, param):
+    if event == H.cv2.EVENT_LBUTTONDOWN:
+        action = button_at(x, y)
+        if action is not None:
+            CLICKS.append(action)
 
 
 def save_all(dark, cert, max_h, ups):
@@ -68,23 +98,6 @@ def revert_all():
     return " | ".join(msgs)
 
 
-def draw_panel(dark, cert, max_h, ups, msg):
-    panel = H.np.zeros((400, 460, 3), dtype=H.np.uint8)
-    lines = [f"dark   {dark}   (skip frames darker than this %)",
-             f"cert   {cert:.1f}   (match below this, max 5.0)",
-             f"height {max_h}   (smaller = faster)",
-             f"up     {ups}   (0 fast / 1 accurate)",
-             "",
-             "presets: 1 stock  2 balanced  3 fast",
-             "         4 fastest  5 strict",
-             "drag a slider or press 1-5, watch window 1,",
-             "s = save  r = revert  q = quit", "", msg[-70:]]
-    for i, ln in enumerate(lines):
-        H.cv2.putText(panel, ln, (12, 30 + i * 28), H.cv2.FONT_HERSHEY_SIMPLEX,
-                      0.6, (255, 255, 255), 1)
-    return panel
-
-
 def main():
     if not H.ensure_sudo():
         sys.exit(1)
@@ -103,15 +116,14 @@ def main():
 
     clahe = H.cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     H.cv2.namedWindow(PREVIEW)
-    H.cv2.namedWindow(TUNING)
-    H.cv2.createTrackbar("dark", TUNING, dark0, 100, lambda v: None)
-    H.cv2.createTrackbar("cert x10", TUNING, cert0, 50, lambda v: None)
-    H.cv2.createTrackbar("height", TUNING, h0, 360, lambda v: None)
-    H.cv2.createTrackbar("up", TUNING, up0, 1, lambda v: None)
-    print("tuning windows open. s=save r=revert q=quit.")
+    H.cv2.setMouseCallback(PREVIEW, on_mouse)
+    print("tuner open: click preset 1-5, SAVE to keep, UNDO to revert, q to quit.")
     print("presets: 1=stock 2=balanced 3=fast 4=fastest 5=strict")
 
-    msg, fps, fps_n, fps_t0 = "tune away", 0.0, 0, time.time()
+    dark_thr, cert_thr = dark0, cert0 / 10.0
+    max_h, ups = h0, up0
+    cur = 0  # active preset, 0 = launch values
+    msg, fps, fps_n, fps_t0 = "click a preset button", 0.0, 0, time.time()
     while True:
         ok, frame = cam.read()
         if not ok:
@@ -120,10 +132,22 @@ def main():
         gray = H.cv2.cvtColor(frame, H.cv2.COLOR_BGR2GRAY) if len(frame.shape) == 3 else frame
         gray = clahe.apply(gray)
 
-        dark_thr = H.cv2.getTrackbarPos("dark", TUNING)
-        cert_thr = H.cv2.getTrackbarPos("cert x10", TUNING) / 10.0
-        max_h = max(80, H.cv2.getTrackbarPos("height", TUNING))
-        ups = H.cv2.getTrackbarPos("up", TUNING)
+        while CLICKS:
+            action = CLICKS.pop(0)
+            if isinstance(action, int):
+                d, c, h, u, _name = PRESETS[action]
+                dark_thr, cert_thr, max_h, ups = d, c, h, u
+                cur = action
+                msg = preset_text(action) + " -- click SAVE to keep"
+                print(msg)
+            elif action == "s":
+                msg = save_all(dark_thr, round(cert_thr, 1), max_h, ups)
+                print(msg)
+            elif action == "r":
+                msg = revert_all()
+                dark_thr, cert_thr, max_h, ups = dark0, cert0 / 10.0, h0, up0
+                cur = 0
+                print(msg)
 
         dark_pct = H.darkness_of(gray)
         h, w = gray.shape[:2]
@@ -145,14 +169,12 @@ def main():
 
         color = frame if len(frame.shape) == 3 else H.cv2.cvtColor(frame, H.cv2.COLOR_GRAY2BGR)
         H.draw_circles(color, circles)
-        H.cv2.putText(color, status, (10, 28), H.cv2.FONT_HERSHEY_SIMPLEX, 0.8,
+        draw_buttons(color)
+        H.cv2.putText(color, status, (10, 60), H.cv2.FONT_HERSHEY_SIMPLEX, 0.8,
                       (0, 255, 0) if status.startswith("MATCH") else (0, 200, 255), 2)
-        H.cv2.putText(color, f"dark {dark_pct:.0f}%/thr {dark_thr} det {ms:.0f}ms {fps:.0f}fps",
+        H.cv2.putText(color, f"preset {cur or '-'} dark {dark_thr} cert {cert_thr:.1f} h {max_h} up {ups} det {ms:.0f}ms {fps:.0f}fps",
                       (10, h - 12), H.cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1)
-        H.cv2.putText(color, "presets: 1 stock  2 balanced  3 fast  4 fastest  5 strict",
-                      (10, h - 32), H.cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 0), 1)
         H.cv2.imshow(PREVIEW, color)
-        H.cv2.imshow(TUNING, draw_panel(dark_thr, cert_thr, max_h, ups, msg))
 
         key = H.cv2.waitKey(1) & 0xFF
         if key in (ord("q"), 27):
@@ -163,9 +185,15 @@ def main():
             print(msg)
         elif key == ord("r"):
             msg = revert_all()
+            dark_thr, cert_thr, max_h, ups = dark0, cert0 / 10.0, h0, up0
+            cur = 0
             print(msg)
         elif key in (ord("1"), ord("2"), ord("3"), ord("4"), ord("5")):
-            msg = apply_preset(int(chr(key)))
+            n = int(chr(key))
+            d, c, mh, u, _name = PRESETS[n]
+            dark_thr, cert_thr, max_h, ups = d, c, mh, u
+            cur = n
+            msg = preset_text(n) + " -- press s to save"
             print(msg)
 
     cam.release()
