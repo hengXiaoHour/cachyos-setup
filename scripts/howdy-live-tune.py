@@ -1,16 +1,29 @@
 #!/usr/bin/env python3
-"""howdy live tuner - change one knob, test, keep or revert. Run: sudo python3 howdy-live-tune.py"""
-import configparser, shutil, subprocess, sys, os
+"""howdy live tuner - no sudo needed to launch. Password is asked only when saving.
+Run: python3 howdy-live-tune.py"""
+import configparser, subprocess, sys, os, io
 
 CONFIG = "/etc/howdy/config.ini"
 COMPARE = "/usr/lib/howdy/compare.py"
 BACKUP_SUFFIX = ".livetune-bak"
+ROOT = os.geteuid() == 0
+
+def sudo(cmd):
+    """Run a shell command with sudo only if not root."""
+    if ROOT:
+        r = subprocess.run(cmd, shell=True)
+    else:
+        r = subprocess.run("sudo " + cmd, shell=True)
+    return r.returncode == 0
 
 def backup(path):
     b = path + BACKUP_SUFFIX
-    if not os.path.exists(b):
-        shutil.copy2(path, b)
+    if subprocess.run(f"test -e '{b}'", shell=True).returncode == 0:
+        return
+    if sudo(f"cp '{path}' '{b}'"):
         print(f"backup: {b}")
+    else:
+        print(f"backup FAILED for {path}");
 
 def load():
     c = configparser.ConfigParser()
@@ -31,11 +44,25 @@ def get_upsample():
     if "face_detector(gsframe, 1)" in txt: return "1 (accurate)"
     return "unknown"
 
+def write_root(path, text):
+    """Write text to a root-owned file. Uses sudo tee when not root."""
+    if ROOT:
+        with open(path, "w") as f: f.write(text)
+        return True
+    r = subprocess.run(["sudo", "tee", path], input=text.encode(),
+                       capture_output=True)
+    if r.returncode != 0:
+        print(f"write FAILED for {path} (wrong sudo password?)")
+        return False
+    return True
+
 def set_ini(c, sec, key, val):
     if sec not in c: c[sec] = {}
     c[sec][key] = str(val)
-    with open(CONFIG, "w") as f: c.write(f)
-    print(f"set [{sec}] {key} = {val}")
+    buf = io.StringIO()
+    c.write(buf)
+    if write_root(CONFIG, buf.getvalue()):
+        print(f"set [{sec}] {key} = {val}  (saved, password was accepted)")
 
 def set_upsample(n):
     with open(COMPARE) as f: txt = f.read()
@@ -43,24 +70,24 @@ def set_upsample(n):
         txt = txt.replace("face_detector(gsframe, 1)", "face_detector(gsframe, 0)")
     else:
         txt = txt.replace("face_detector(gsframe, 0)", "face_detector(gsframe, 1)")
-    with open(COMPARE, "w") as f: f.write(txt)
-    # drop stale bytecode so PAM picks it up next sudo
-    subprocess.run(["find","/usr/lib/howdy","-name","__pycache__","-type","d","-exec","rm","-rf","{}","+"],
-                   stderr=subprocess.DEVNULL)
-    print(f"set upsample = {n}")
+    if write_root(COMPARE, txt):
+        sudo("find /usr/lib/howdy -name __pycache__ -type d -exec rm -rf {} + 2>/dev/null")
+        print(f"set upsample = {n}  (saved)")
 
 def test():
     print("\nlook at the camera, testing...")
-    subprocess.run(["sudo","-k"])
-    r = subprocess.run(["bash","-c","time sudo -i -c 'echo OK-face-unlock'"], capture_output=False)
+    subprocess.run(["sudo", "-k"])
+    r = subprocess.run(["bash", "-c", "time sudo -i -c 'echo OK-face-unlock'"])
     print("exit:", r.returncode, "(0 with your name = face worked)")
 
 def revert():
     for p in (CONFIG, COMPARE):
         b = p + BACKUP_SUFFIX
-        if os.path.exists(b):
-            shutil.copy2(b, p)
-            print(f"reverted {p}")
+        if subprocess.run(f"test -e '{b}'", shell=True).returncode == 0:
+            if sudo(f"cp '{b}' '{p}'"):
+                print(f"reverted {p}")
+        else:
+            print(f"no backup for {p}")
 
 MENU = """
 1 max_height  [160 fast | 240 | 320 accurate]
@@ -76,36 +103,34 @@ q quit
 """
 
 if len(sys.argv) > 1 and sys.argv[1] in ("--show", "-s"):
-    c = load()
-    show(c)
+    show(load())
     sys.exit(0)
 
 if len(sys.argv) > 1 and sys.argv[1] in ("--help", "-h"):
-    print("usage: python3 howdy-live-tune.py [--show]   (no sudo needed for --show)")
-    print("       sudo python3 howdy-live-tune.py       (needed to change values)")
+    print("usage: python3 howdy-live-tune.py [--show]")
+    print("No sudo needed to launch. Password is asked only when saving.")
     sys.exit(0)
 
-if os.geteuid() != 0:
-    print("viewing is fine without sudo: python3 howdy-live-tune.py --show")
-    print("to CHANGE values, run with sudo: sudo python3 howdy-live-tune.py")
-    sys.exit(1)
-
 backup(CONFIG); backup(COMPARE)
-c = load()
 print("howdy live tuner. one change, then press t to test.")
+print("(password is asked only when saving, not at startup)")
 while True:
     show(load())
     print(MENU)
-    ch = input("choice> ").strip().lower()
+    try:
+        ch = input("choice> ").strip().lower()
+    except EOFError:
+        print("\nbye.")
+        break
     c = load()
-    if ch == "1": set_ini(c,"video","max_height",input("max_height [160/240/320]> ").strip() or "160")
-    elif ch == "2": set_ini(c,"video","certainty",input("certainty [3.5/4.0/4.5]> ").strip() or "4.0")
-    elif ch == "3": set_ini(c,"video","dark_threshold",input("dark_threshold [80-92]> ").strip() or "85")
-    elif ch == "4": set_ini(c,"video","timeout",input("timeout secs> ").strip() or "6")
+    if ch == "1": set_ini(c, "video", "max_height", input("max_height [160/240/320]> ").strip() or "160")
+    elif ch == "2": set_ini(c, "video", "certainty", input("certainty [3.5/4.0/4.5]> ").strip() or "4.0")
+    elif ch == "3": set_ini(c, "video", "dark_threshold", input("dark_threshold [80-92]> ").strip() or "85")
+    elif ch == "4": set_ini(c, "video", "timeout", input("timeout secs> ").strip() or "6")
     elif ch == "5": set_upsample(input("upsample [0/1]> ").strip() or "0")
-    elif ch == "6": set_ini(c,"debug","end_report",input("end_report [true/false]> ").strip() or "true")
+    elif ch == "6": set_ini(c, "debug", "end_report", input("end_report [true/false]> ").strip() or "true")
     elif ch == "t": test()
     elif ch == "s": continue
     elif ch == "r": revert()
-    elif ch == "q": print("bye. backups at *"+BACKUP_SUFFIX); break
+    elif ch == "q": print("bye. backups at *" + BACKUP_SUFFIX); break
     else: print("unknown choice")
