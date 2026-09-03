@@ -165,3 +165,13 @@ linux-enable-ir-emitter still built from AUR with makepkg.
   closest Dell cases: Latitude 7280 issue 89 (emitter search failed, 0bda:58c7),
   Inspiron 5567 issue 9 (no IR node at all). Our IR node IS exposed, which is
   a better starting point than both.
+
+## Step 10 - login keyring blanked for passwordless boot (2026-09-04)
+
+  Face login never types the password, so pam_gnome_keyring can't unlock
+  the login keyring. Symptom: after reboot + face login, first secret
+  user (VS Code) pops "unlock login keyring" demanding the password.
+  Single-user box, so: sudo pacman -S --needed seahorse, open Passwords
+  and Keys, right-click Login, Change Password, current in, new blank.
+  Keyring auto-unlocks every login from then on. Tradeoff accepted:
+  saved tokens sit behind an empty password.
