@@ -78,7 +78,9 @@ linux-enable-ir-emitter still built from AUR with makepkg.
   sudo howdy test crashed: test.py:131 int(sum(hist)[0]) assumes calcHist
   returns (8,1), opencv 5 returns flat, IndexError. Auth path (compare.py)
   and enrollment (add.py) already use np.sum, unaffected. Fixed locally with
-  the same one-liner, syntax checked. Emitter configure still pending.
+  the same one-liner, syntax checked. Second instance of the same bug at
+  test.py:137 (value[0] loop over flat hist) fixed the same way, no more
+  shape assumptions left in test/compare/add. Emitter configure still pending.
 
 ## Step 4 - configure IR emitter (PENDING, interactive, user terminal)
 
