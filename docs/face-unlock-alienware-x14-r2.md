@@ -108,6 +108,13 @@ linux-enable-ir-emitter still built from AUR with makepkg.
   Password still works as fallback. No emitter hook needed (native emitter).
   TTY login (/etc/pam.d/login) untouched as emergency entry.
 
+## Step 7 - first sudo test: fallback works, frames too dark (2026-09-03)
+
+  sudo -i tried face, printed Failure timeout reached, fell back to password,
+  root shell worked. Diagnosis: All frames too dark, darkness 81 vs
+  threshold 60. Tuned /etc/howdy/config.ini: timeout 4 to 10,
+  dark_threshold 60 to 45. Retest pending in good light.
+
 ## Caveats
 
   Howdy is convenience, not security. A photo can fool it. Never sole auth.
