@@ -125,6 +125,14 @@ linux-enable-ir-emitter still built from AUR with makepkg.
   face are accepted immediately. Emitter faint red glow visible to eye is
   normal (850nm leak, purple on phone camera) and means it IS firing.
 
+## Step 8 - live tuner (2026-09-03)
+
+  scripts/howdy-live-tune.py: sudo-run menu to set max_height, certainty,
+  dark_threshold, timeout, upsample (0 fast / 1 accurate), end_report,
+  then test with sudo -k + time sudo -i. Backups at *.livetune-bak.
+  Also fixed stray leading 0 on /etc/howdy/config.ini line 1 that broke
+  Python configparser reads (Howdy itself tolerated it).
+
 ## Caveats
 
   Howdy is convenience, not security. A photo can fool it. Never sole auth.
