@@ -113,12 +113,17 @@ linux-enable-ir-emitter still built from AUR with makepkg.
   sudo -i tried face, printed Failure timeout reached, fell back to password,
   root shell worked. Diagnosis: All frames too dark, darkness 81 vs
   threshold 60. Tuned /etc/howdy/config.ini: timeout 4 to 10,
-  dark_threshold 60 to 45. Retest pending in good light.
+  dark_threshold 60 to 45 (WRONG DIRECTION, made it stricter).
 
   GDM login works with face. Complaint: slow. Measured IR frame mean 11/255
   in current light, no exposure controls on the node, so Howdy spends seconds
-  skipping black frames. Set timeout 10 to 6 for faster fallback. Real fix is
-  light on the face or a firing emitter; brightness test pending.
+  skipping black frames. Set timeout 10 to 6 for faster fallback.
+
+  Fix 2026-09-03: darkness = % of near-black pixels, higher = darker.
+  81% black vs threshold 60 meant every frame skipped. 45 was backwards.
+  Set dark_threshold 45 -> 85 so IR frames with black background but lit
+  face are accepted immediately. Emitter faint red glow visible to eye is
+  normal (850nm leak, purple on phone camera) and means it IS firing.
 
 ## Caveats
 
