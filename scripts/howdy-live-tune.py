@@ -111,6 +111,19 @@ if len(sys.argv) > 1 and sys.argv[1] in ("--help", "-h"):
     print("No sudo needed to launch. Password is asked only when saving.")
     sys.exit(0)
 
+def ask(prompt, default, lo, hi):
+    """Prompt for a number, clamp to [lo, hi]. Pasted commands are rejected."""
+    raw = input(f"{prompt} [{default}]> ").strip() or default
+    try:
+        val = float(raw)
+    except ValueError:
+        print(f"rejected {raw!r}: not a number, keeping current value")
+        return None
+    if not (lo <= val <= hi):
+        print(f"rejected {val}: must be between {lo} and {hi}")
+        return None
+    return val
+
 backup(CONFIG); backup(COMPARE)
 print("howdy live tuner. one change, then press t to test.")
 print("(password is asked only when saving, not at startup)")
@@ -123,11 +136,21 @@ while True:
         print("\nbye.")
         break
     c = load()
-    if ch == "1": set_ini(c, "video", "max_height", input("max_height [160/240/320]> ").strip() or "160")
-    elif ch == "2": set_ini(c, "video", "certainty", input("certainty [3.5/4.0/4.5]> ").strip() or "4.0")
-    elif ch == "3": set_ini(c, "video", "dark_threshold", input("dark_threshold [80-92]> ").strip() or "85")
-    elif ch == "4": set_ini(c, "video", "timeout", input("timeout secs> ").strip() or "6")
-    elif ch == "5": set_upsample(input("upsample [0/1]> ").strip() or "0")
+    if ch == "1":
+        v = ask("max_height", "160", 80, 480)
+        if v is not None: set_ini(c, "video", "max_height", int(v))
+    elif ch == "2":
+        v = ask("certainty", "4.0", 1.0, 5.0)
+        if v is not None: set_ini(c, "video", "certainty", v)
+    elif ch == "3":
+        v = ask("dark_threshold", "85", 10, 100)
+        if v is not None: set_ini(c, "video", "dark_threshold", v)
+    elif ch == "4":
+        v = ask("timeout secs", "6", 2, 30)
+        if v is not None: set_ini(c, "video", "timeout", int(v))
+    elif ch == "5":
+        v = ask("upsample", "0", 0, 1)
+        if v is not None: set_upsample(int(v))
     elif ch == "6": set_ini(c, "debug", "end_report", input("end_report [true/false]> ").strip() or "true")
     elif ch == "t": test()
     elif ch == "s": continue
