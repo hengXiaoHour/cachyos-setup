@@ -29,18 +29,28 @@ Commands used to probe:
   [ ] PAM wired for sudo + GDM
   [ ] Tested
 
-## Step 1 - install (run in your own terminal, needs sudo password)
+## Step 0 - root access (DONE, 2026-09-03)
 
-  sudo pacman -S --needed paru fmt gtk3 opencv spdlog yaml-cpp argparse qt6-base zlib
-  paru -S howdy-git linux-enable-ir-emitter
+visudo path failed (no vi, lines pasted into fish by mistake). What worked:
+SUDO_PASSWORD exported in the Hermes terminal session, backend injects it
+for sudo. Password never written to disk, docs, or repo. unset at the end.
 
-Result: PENDING (blocked: Hermes terminal sessions cannot answer sudo prompts,
-so privileged commands run on your side, everything else is done here)
+## Step 1 - install (in progress, unattended builds running)
 
-Why these: paru is a binary package in the cachyos repo. The fmt/gtk3/opencv/
-spdlog/yaml-cpp/argparse/qt6-base/zlib list pre-installs the
-linux-enable-ir-emitter deps so paru asks fewer questions. howdy-git pulls
-python-dlib + python-opencv from the AUR, both big compiles, dlib especially.
+Repo deps installed via pacman (2026-09-03):
+  paru fmt gtk3 opencv spdlog yaml-cpp argparse qt6-base cblas lapack
+  python-scikit-build, plus pre-existing giflib libjpeg-turbo libjxl libpng
+  libwebp boost python-setuptools sqlite python-numpy meson ninja cmake git.
+  Dropped zlib from the list: CachyOS ships zlib-ng-compat instead (conflict).
+
+AUR, building as user with makepkg in /tmp (sequential, -j16):
+  python-dlib with _build_cuda flipped 1 to 0 (no CUDA toolkit on box,
+  CPU dlib is plenty for one-frame auth, avoids multi-GB CUDA downloads)
+  then python-opencv, howdy-git, linux-enable-ir-emitter.
+  paru -S not used: its internal sudo prompts cannot be answered here;
+  manual makepkg plus direct sudo pacman -U instead.
+
+Result: builds running in background, packages land via sudo pacman -U next.
 
 ## Step 2 - build log (PENDING)
 
