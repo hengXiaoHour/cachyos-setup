@@ -1,0 +1,84 @@
+# Face unlock (Windows Hello style) on Alienware x14 R2 + CachyOS
+
+Howdy + linux-enable-ir-emitter on GNOME/GDM. Written while installing on 2026-09-03.
+
+## Hardware (measured on this machine)
+
+  Camera: Realtek 0bda:555d Integrated_Webcam_FHD, usb-0000:00:14.0-7
+  /dev/video0 = RGB, MJPG 1920x1080
+  /dev/video1 = RGB metadata node (no formats)
+  /dev/video2 = IR sensor, GREY 640x360 15fps <- Howdy device
+  /dev/video3 = IR metadata node (no formats)
+  Stable Howdy path: /dev/v4l/by-path/pci-0000:00:14.0-usb-0:7:1.2-video-index0
+  Desktop: GNOME, login via gdm-password (covers login + lock screen)
+
+Commands used to probe:
+  v4l2-ctl --list-devices
+  for d in /dev/video0 /dev/video1 /dev/video2 /dev/video3; do v4l2-ctl -d $d --list-formats-ext; done
+  ls -l /dev/v4l/by-id/ /dev/v4l/by-path/
+  lsusb -d 0bda:555d
+
+## Status
+
+  [x] Hardware probed, IR node confirmed
+  [ ] paru installed
+  [ ] howdy-git installed (AUR, dlib build takes a long time)
+  [ ] linux-enable-ir-emitter installed
+  [ ] IR emitter configured (INTERACTIVE step, see below)
+  [ ] Howdy configured, face enrolled
+  [ ] PAM wired for sudo + GDM
+  [ ] Tested
+
+## Step 1 - install (run in your own terminal, needs sudo password)
+
+  sudo pacman -S --needed paru fmt gtk3 opencv spdlog yaml-cpp argparse qt6-base zlib
+  paru -S howdy-git linux-enable-ir-emitter
+
+Result: PENDING (blocked: Hermes terminal sessions cannot answer sudo prompts,
+so privileged commands run on your side, everything else is done here)
+
+Why these: paru is a binary package in the cachyos repo. The fmt/gtk3/opencv/
+spdlog/yaml-cpp/argparse/qt6-base/zlib list pre-installs the
+linux-enable-ir-emitter deps so paru asks fewer questions. howdy-git pulls
+python-dlib + python-opencv from the AUR, both big compiles, dlib especially.
+
+## Step 2 - build log (PENDING)
+
+## Step 3 - configure IR emitter (PENDING, interactive)
+
+  linux-enable-ir-emitter configure
+
+Follow the wizard, answer Y/N on whether the preview flashes.
+Upstream warns probing can in theory corrupt camera firmware.
+If auto-detect fails, retry in manual mode.
+
+## Step 4 - configure Howdy (PENDING)
+
+  sudo howdy config
+  device_path = /dev/v4l/by-path/pci-0000:00:14.0-usb-0:7:1.2-video-index0
+  snapshots: capture_failed = false, capture_successful = false
+
+  sudo howdy add
+  sudo howdy test
+
+## Step 5 - PAM (PENDING)
+
+Top of /etc/pam.d/gdm-password and /etc/pam.d/sudo:
+
+  auth sufficient /lib/security/pam_howdy.so
+  auth sufficient pam_unix.so try_first_pass likeauth nullok
+
+Emitter hook, directly BEFORE the howdy line (fix paths via which):
+
+  auth optional pam_exec.so /usr/local/bin/linux-enable-ir-emitter run --config /home/USER/.config/linux-enable-ir-emitter.toml
+
+Keep a root shell open while testing PAM. Test with sudo -i in a new terminal,
+then GDM logout/login.
+
+## Caveats
+
+  Howdy is convenience, not security. A photo can fool it. Never sole auth.
+  No Alienware x14 R2 success report found online (checked 2026-09-03);
+  closest Dell cases: Latitude 7280 issue 89 (emitter search failed, 0bda:58c7),
+  Inspiron 5567 issue 9 (no IR node at all). Our IR node IS exposed, which is
+  a better starting point than both.
