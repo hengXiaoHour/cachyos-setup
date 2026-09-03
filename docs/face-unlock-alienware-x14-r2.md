@@ -52,7 +52,25 @@ AUR, building as user with makepkg in /tmp (sequential, -j16):
 
 Result: builds running in background, packages land via sudo pacman -U next.
 
-## Step 2 - build log (PENDING)
+2026-09-03 pivot: python-dlib built fine (CPU-only). AUR python-opencv
+FAILED: its opencv-python 4.5.1.48 source from 2021 does not compile on
+Python 3.14 / current toolchain (ninja subcommand failure in videoio/calib3d).
+Not worth fixing. CachyOS ships binary python-opencv 5.0.0
+(cachyos-extra-v3 + extra), installed via pacman instead. howdy-git and
+linux-enable-ir-emitter still built from AUR with makepkg.
+
+## Step 2 - build log (DONE 2026-09-03)
+
+  Installed and verified: howdy 3.0.0 BETA (howdy-git r592.d3ab993),
+  linux-enable-ir-emitter 7.0.0-beta2 (upstream release tarball in
+  /usr/local/bin, AUR 6.1.2 skipped: needs opencv4, system has opencv5,
+  upstream master is a Rust rewrite), python-opencv 5.0.0 binary,
+  python-dlib 20.0.1 CPU-only (local makepkg), cv2+dlib+numpy import OK.
+  Config: /etc/howdy/config.ini device_path set to the IR by-path node,
+  snapshots already default off in 3.0.
+  IR feed verified headless: 640x360 frames arriving, mean brightness 30
+  (dark without emitter, as expected). howdy test GUI cannot run from a
+  headless session, deferred to user terminal on DISPLAY :0.
 
 ## Step 3 - configure IR emitter (PENDING, interactive)
 
