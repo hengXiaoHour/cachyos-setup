@@ -137,6 +137,19 @@ linux-enable-ir-emitter still built from AUR with makepkg.
   face are accepted immediately. Emitter faint red glow visible to eye is
   normal (850nm leak, purple on phone camera) and means it IS firing.
 
+## Step 9 - one-line setup script (2026-09-04)
+
+  scripts/setup-face-unlock.sh automates Steps 1-2 and 5-6 end to end:
+  pacman deps, CPU-only python-dlib AUR build, howdy-git AUR build,
+  linux-enable-ir-emitter 7.0.0-beta2 upstream tarball, the two test.py
+  opencv5 scalar-hist fixes, IR device_path + known-good values
+  (dark 85, timeout 6, cert 4.0, height 240), PAM wiring for sudo,
+  gdm-password, su, su-l, login (backups at .bak-howdy), root.dat copy.
+  Idempotent, safe to re-run (verified: live re-run changed nothing,
+  exactly 1 pam_howdy line per file). --check reports without changing.
+  Manual, need a human at the camera: emitter configure (only if not
+  native), `sudo howdy add`, GUI capture/tuning, logout test.
+
 ## Step 8 - live tuner (2026-09-03)
 
   scripts/howdy-live-tune.py: sudo-run menu to set max_height, certainty,
