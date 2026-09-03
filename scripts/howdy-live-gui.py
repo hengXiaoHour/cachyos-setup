@@ -3,6 +3,7 @@
 Window 1 PREVIEW: IR feed with face circles (green + name = match).
 Window 2 TUNING: sliders dark / cert x10 / height / up.
 Keys: s = save sliders to real login config, r = revert, q/ESC = quit.
+  1-5 = presets: 1 stock, 2 balanced, 3 fast, 4 fastest, 5 strict.
 For new face models use howdy-capture-gui.py instead.
 
 Run: python3 howdy-live-gui.py (auto-switches to system python if needed)"""
@@ -11,7 +12,7 @@ import os, subprocess, io, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import howdy_common as H
 
-PREVIEW = "1 preview - IR feed (1-5=preset s=save r=revert q=quit)"
+PREVIEW = "1 preview - IR feed (s=save r=revert q=quit)"
 TUNING = "2 tuning - sliders"
 
 # Presets: (dark_threshold, certainty, max_height, upsample).
