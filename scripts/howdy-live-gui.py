@@ -108,6 +108,7 @@ def main():
     H.cv2.createTrackbar("height", TUNING, h0, 360, lambda v: None)
     H.cv2.createTrackbar("up", TUNING, up0, 1, lambda v: None)
     print("tuning windows open. s=save r=revert q=quit.")
+    print("presets: 1=stock 2=balanced 3=fast 4=fastest 5=strict")
 
     msg, fps, fps_n, fps_t0 = "tune away", 0.0, 0, time.time()
     while True:
@@ -147,6 +148,8 @@ def main():
                       (0, 255, 0) if status.startswith("MATCH") else (0, 200, 255), 2)
         H.cv2.putText(color, f"dark {dark_pct:.0f}%/thr {dark_thr} det {ms:.0f}ms {fps:.0f}fps",
                       (10, h - 12), H.cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1)
+        H.cv2.putText(color, "presets: 1 stock  2 balanced  3 fast  4 fastest  5 strict",
+                      (10, h - 32), H.cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 0), 1)
         H.cv2.imshow(PREVIEW, color)
         H.cv2.imshow(TUNING, draw_panel(dark_thr, cert_thr, max_h, ups, msg))
 
