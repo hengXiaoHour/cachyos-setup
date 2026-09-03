@@ -139,7 +139,7 @@ linux-enable-ir-emitter still built from AUR with makepkg.
 
 ## Step 9 - one-line setup script (2026-09-04)
 
-  scripts/setup-face-unlock.sh automates Steps 1-2 and 5-6 end to end:
+  face-unlock/setup-face-unlock.sh automates Steps 1-2 and 5-6 end to end:
   pacman deps, CPU-only python-dlib AUR build, howdy-git AUR build,
   linux-enable-ir-emitter 7.0.0-beta2 upstream tarball, the two test.py
   opencv5 scalar-hist fixes, IR device_path + known-good values
@@ -152,7 +152,7 @@ linux-enable-ir-emitter still built from AUR with makepkg.
 
 ## Step 8 - live tuner (2026-09-03)
 
-  scripts/howdy-live-tune.py: sudo-run menu to set max_height, certainty,
+  face-unlock/howdy-live-tune.py: sudo-run menu to set max_height, certainty,
   dark_threshold, timeout, upsample (0 fast / 1 accurate), end_report,
   then test with sudo -k + time sudo -i. Backups at *.livetune-bak.
   Also fixed stray leading 0 on /etc/howdy/config.ini line 1 that broke

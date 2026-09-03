@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One-line face-unlock setup for Alienware x14 R2 + CachyOS (GNOME/GDM).
-#   bash scripts/setup-face-unlock.sh          # full install + wiring
-#   bash scripts/setup-face-unlock.sh --check  # report only, change nothing
+#   bash face-unlock/setup-face-unlock.sh          # full install + wiring
+#   bash face-unlock/setup-face-unlock.sh --check  # report only, change nothing
 #
 # Automates everything reproducible. Two steps stay manual (need a human
 # in front of the IR camera): `linux-enable-ir-emitter configure`
@@ -112,8 +112,8 @@ say "MANUAL (need you in front of the camera):"
 say "  1. linux-enable-ir-emitter configure   # only if emitter is not native; x14 R2 usually errors 'already working' = good"
 say "  2. sudo howdy add                       # enroll your face"
 say "  3. sudo howdy test                      # verify (any key closes window)"
-say "  4. /usr/bin/python3 scripts/howdy-capture-gui.py   # guided 3-angle face1"
-say "  5. /usr/bin/python3 scripts/howdy-live-gui.py      # click preset 3 + SAVE for speed"
+say "  4. /usr/bin/python3 face-unlock/howdy-capture-gui.py   # guided 3-angle face1"
+say "  5. /usr/bin/python3 face-unlock/howdy-live-gui.py      # click preset 3 + SAVE for speed"
 say "  6. log out, click your name, look. No typing."
 [ "$CHECK" = 1 ] && { say ""; say "CHECK MODE: nothing was changed."; }
 exit 0

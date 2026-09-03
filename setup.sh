@@ -277,13 +277,13 @@ fi
 ask a "Face unlock"
 if [[ "$a" = "y" ]]; then
   say "[9/9] Face unlock (Howdy + IR emitter, PAM: sudo/GDM/su/login)"
-  if [[ -x "$REPO_DIR/scripts/setup-face-unlock.sh" ]]; then
-    (cd "$REPO_DIR" && bash scripts/setup-face-unlock.sh) \
+  if [[ -x "$REPO_DIR/face-unlock/setup-face-unlock.sh" ]]; then
+    (cd "$REPO_DIR" && bash face-unlock/setup-face-unlock.sh) \
       || warn "face-unlock setup failed"
     echo "  - enroll at the camera: sudo howdy add"
-    echo "  - then: /usr/bin/python3 scripts/howdy-capture-gui.py"
+    echo "  - then: /usr/bin/python3 face-unlock/howdy-capture-gui.py"
   else
-    warn "scripts/setup-face-unlock.sh not found"
+    warn "face-unlock/setup-face-unlock.sh not found"
   fi
 else
   warn "skipped face unlock"
