@@ -73,7 +73,7 @@ curl -fsSL .../uninstall.sh | bash -s -- -y
 | `face-unlock/setup-face-unlock.sh` | Face unlock for Alienware x14 R2: Howdy + IR, PAM wired (sudo, GDM, su, login) |
 | `face-unlock/howdy-capture-gui.py` | Guided 3-angle face enrollment GUI |
 | `face-unlock/howdy-live-gui.py` | Live IR preview + clickable speed presets GUI |
-| `docs/face-unlock-alienware-x14-r2.md` | Full face-unlock build log, step by step |
+| `face-unlock/face-unlock-alienware-x14-r2.md` | Full face-unlock build log, step by step |
 | `LICENSE` | MIT license |
 
 ---
@@ -283,7 +283,7 @@ IR emitter
 install, IR config, and PAM wiring for sudo, GDM login/lock, su, and TTY
 login (password stays as fallback, SSH untouched). Then, in front of the
 camera: `sudo howdy add`, the capture GUI for 3-angle enrollment, the live
-GUI for speed presets. Full log in `docs/face-unlock-alienware-x14-r2.md`.
+GUI for speed presets. Full log in `face-unlock/face-unlock-alienware-x14-r2.md`.
 
 ```bash
 /usr/bin/python3 face-unlock/howdy-capture-gui.py   # guided 3-angle face1
