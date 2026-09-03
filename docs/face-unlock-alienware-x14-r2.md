@@ -113,6 +113,12 @@ linux-enable-ir-emitter still built from AUR with makepkg.
   Backups at .bak-howdy. sshd/remote, passwd/chsh, and system-auth
   deliberately untouched (no camera over SSH, no face for password
   changes, no double-fire via includes).
+  Plain `su` targets root, which has no models by default, so it fell
+  straight to password. Fixed with:
+  sudo cp /etc/howdy/models/chenla.dat /etc/howdy/models/root.dat
+  (same face, same person). Verified `su -c 'echo OK' < /dev/null`
+  prints `Identified face as root`. Note: re-copy after re-enrolling
+  chenla, or root keeps the old encodings.
 
 ## Step 7 - first sudo test: fallback works, frames too dark (2026-09-03)
 
