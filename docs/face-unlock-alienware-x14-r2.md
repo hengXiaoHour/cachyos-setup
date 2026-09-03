@@ -82,13 +82,12 @@ linux-enable-ir-emitter still built from AUR with makepkg.
   test.py:137 (value[0] loop over flat hist) fixed the same way, no more
   shape assumptions left in test/compare/add. Emitter configure still pending.
 
-## Step 4 - configure IR emitter (PENDING, interactive, user terminal)
+## Step 4 - emitter already working, no probing needed (2026-09-03)
 
-  linux-enable-ir-emitter configure
-
-Follow the wizard, answer Y/N on whether the preview flashes.
-Upstream warns probing can in theory corrupt camera firmware.
-If auto-detect fails, retry in manual mode.
+  linux-enable-ir-emitter configure ended with
+  Error: the IR emitter is already working.
+  The x14 R2 emitter fires out of the box on Linux, nothing to configure,
+  config file left empty, no pam_exec hook or service needed.
 
 ## Step 5 - configure Howdy (mostly DONE)
 
@@ -99,19 +98,15 @@ If auto-detect fails, retry in manual mode.
   sudo howdy add
   sudo howdy test
 
-## Step 6 - PAM (PENDING, after emitter + test pass)
+## Step 6 - PAM wired (2026-09-03, backups at .bak-howdy)
 
-Top of /etc/pam.d/gdm-password and /etc/pam.d/sudo:
+  Top of /etc/pam.d/sudo and /etc/pam.d/gdm-password now:
 
   auth sufficient /lib/security/pam_howdy.so
   auth sufficient pam_unix.so try_first_pass likeauth nullok
 
-Emitter hook, directly BEFORE the howdy line (fix paths via which):
-
-  auth optional pam_exec.so /usr/local/bin/linux-enable-ir-emitter run --config /home/USER/.config/linux-enable-ir-emitter.toml
-
-Keep a root shell open while testing PAM. Test with sudo -i in a new terminal,
-then GDM logout/login.
+  Password still works as fallback. No emitter hook needed (native emitter).
+  TTY login (/etc/pam.d/login) untouched as emergency entry.
 
 ## Caveats
 
