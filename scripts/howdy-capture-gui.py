@@ -82,8 +82,8 @@ def main():
             print(msg)
             encodings, labels, stored = load_or_empty()
             wipe_armed = 0.0
-        elif key == ord("X"):
-            if time.time() - wipe_armed < 5:
+        elif key in (ord("X"), ord("x")):
+            if time.time() - wipe_armed < 8:
                 ok = H.sudo_cmd(f"rm -f '{H.MODEL}'")
                 if ok:
                     encodings, labels, stored = [], [], []
@@ -94,7 +94,7 @@ def main():
                 wipe_armed = 0.0
             else:
                 wipe_armed = time.time()
-                msg = "press X AGAIN within 5s to wipe ALL models"
+                msg = "press X AGAIN within 8s to wipe ALL models"
                 print(msg)
 
     cam.release()
