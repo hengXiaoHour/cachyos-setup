@@ -10,8 +10,16 @@ Run: /usr/bin/python3 howdy-live-gui.py            (must be system python, not 3
 Keys (focus either window): s = save to real config, r = revert, q/ESC = quit."""
 import sys, os, json, time, subprocess, io, configparser
 
+SYS_PYTHON = "/usr/bin/python3"
+try:
+    import cv2
+except ImportError:
+    if os.environ.get("HOWDY_GUI_REEXEC") or sys.executable.startswith(SYS_PYTHON):
+        raise  # right interpreter already, real problem, show it
+    os.environ["HOWDY_GUI_REEXEC"] = "1"
+    os.execv(SYS_PYTHON, [SYS_PYTHON] + sys.argv)
+
 sys.path.insert(0, "/usr/lib/howdy")
-import cv2
 import numpy as np
 
 CONFIG = "/etc/howdy/config.ini"
