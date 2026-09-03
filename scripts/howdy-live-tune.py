@@ -75,8 +75,19 @@ r revert all to pre-tuner backup
 q quit
 """
 
+if len(sys.argv) > 1 and sys.argv[1] in ("--show", "-s"):
+    c = load()
+    show(c)
+    sys.exit(0)
+
+if len(sys.argv) > 1 and sys.argv[1] in ("--help", "-h"):
+    print("usage: python3 howdy-live-tune.py [--show]   (no sudo needed for --show)")
+    print("       sudo python3 howdy-live-tune.py       (needed to change values)")
+    sys.exit(0)
+
 if os.geteuid() != 0:
-    print("run with sudo: sudo python3 howdy-live-tune.py")
+    print("viewing is fine without sudo: python3 howdy-live-tune.py --show")
+    print("to CHANGE values, run with sudo: sudo python3 howdy-live-tune.py")
     sys.exit(1)
 
 backup(CONFIG); backup(COMPARE)
