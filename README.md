@@ -74,6 +74,8 @@ curl -fsSL .../uninstall.sh | bash -s -- -y
 | `face-unlock/howdy-capture-gui.py` | Guided 3-angle face enrollment GUI |
 | `face-unlock/howdy-live-gui.py` | Live IR preview + clickable speed presets GUI |
 | `face-unlock/face-unlock-alienware-x14-r2.md` | Full face-unlock build log, step by step |
+| `audio-tuning/setup-audio-tuning.sh` | Speaker tuning for Alienware x14 R2: EasyEffects + loud presets (idempotent, `--check`) |
+| `audio-tuning/Alienware x14 R2 Loud.json` | Custom EasyEffects Output preset: EQ + bass + compressor + limiter for the 2x2W speakers |
 | `LICENSE` | MIT license |
 
 ---
@@ -289,6 +291,36 @@ GUI for speed presets. Full log in `face-unlock/face-unlock-alienware-x14-r2.md`
 /usr/bin/python3 face-unlock/howdy-capture-gui.py   # guided 3-angle face1
 /usr/bin/python3 face-unlock/howdy-live-gui.py      # click preset 3 + SAVE
 ```
+
+---
+
+## 11. Speaker Tuning — Alienware x14 R2 (EasyEffects)
+
+The x14 R2's speakers are Dolby Atmos-certified, but that DSP (MaxxAudio +
+Dolby) only exists on Windows. On Linux ALSA runs flat, so the same 2x2W
+speakers sound thin and quiet. This recreates the Windows chain in software:
+
+```bash
+bash audio-tuning/setup-audio-tuning.sh          # full install + presets
+bash audio-tuning/setup-audio-tuning.sh --check  # report only, change nothing
+```
+
+What it installs (all 3 presets land in `~/.config/easyeffects/output/`):
+
+1. **Alienware x14 R2 Loud** (custom, in this repo) — Output chain
+   `equalizer → bass_enhancer → compressor → limiter`, tuned for tiny laptop
+   drivers: sub-bass cut below 80 Hz (they can't move it), +3 dB low-mid body
+   at 120–250 Hz, harmonic bass, gentle compression, limiter for loudness.
+2. **Dolby Atmos** (community, JackHack96/EasyEffects-Presets, MIT) —
+   EQ + bass + stereo widener + reverb; best on headphones.
+3. **Loudness+Autogain** (community, same source) — EQ + bass + loudness +
+   autogain + compressor; best for quiet videos.
+
+Then: open EasyEffects → **Output** → Presets → pick one. Tune by ear with
+two knobs: Bass Enhancer `amount` (3–6, fatter) and Limiter `threshold`
+(-3…0, lower = louder). If you hear crackling, back the limiter off — that's
+the drivers hitting their physical limit. GNOME Sound → Over-Amplification
+pushes past 100% if you need more.
 
 ---
 
