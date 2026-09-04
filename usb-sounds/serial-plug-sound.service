@@ -1,0 +1,11 @@
+[Unit]
+Description=USB serial plug/unplug sound (Windows-like ding)
+After=default.target
+
+[Service]
+ExecStart=%h/.local/bin/serial-plug-sound.sh
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target
