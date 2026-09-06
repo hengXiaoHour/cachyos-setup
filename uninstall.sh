@@ -135,10 +135,13 @@ fi
 # ---- 3. GNOME extensions ----------------------------------------------------
 ask a "GNOME extensions"
 if [[ "$a" = "y" ]]; then
-  say "[3/9] Removing GNOME extensions (auto-move + every-window)"
+  say "[3/9] Removing GNOME extensions (auto-move + every-window + smart-alt-f4)"
   gsettings reset org.gnome.shell enabled-extensions 2>/dev/null || true
+  gsettings reset org.gnome.desktop.wm.keybindings close 2>/dev/null || true
+  gsettings reset org.gnome.desktop.input-sources xkb-options 2>/dev/null || true
   backup ~/.local/share/gnome-shell/extensions/auto-move-new-workspace@sobeitnow
   backup ~/.local/share/gnome-shell/extensions/every-window-new-workspace@custom
+  backup ~/.local/share/gnome-shell/extensions/smart-alt-f4@local
   ok "GNOME extensions removed (log out/in to apply)"
 else
   warn "kept GNOME extensions"

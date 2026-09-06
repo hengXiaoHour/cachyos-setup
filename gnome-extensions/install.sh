@@ -16,12 +16,18 @@ echo "Installing Every Window New Workspace (custom)..."
 mkdir -p "$EXT_DIR/every-window-new-workspace@custom"
 cp -r every-window-new-workspace/* "$EXT_DIR/every-window-new-workspace@custom/"
 
+echo "Installing Smart Alt+F4 (close window, shutdown dialog when none left)..."
+mkdir -p "$EXT_DIR/smart-alt-f4@local"
+cp -r smart-alt-f4/* "$EXT_DIR/smart-alt-f4@local/"
+glib-compile-schemas "$EXT_DIR/smart-alt-f4@local/schemas" 2>/dev/null || true
+
 echo "Configuring extensions..."
 # Enable extensions
 gsettings set org.gnome.shell enabled-extensions "[
   'dash-to-panel@jderose9.github.com',
   'touchpad-speed-control@ritesh',
-  'auto-move-new-workspace@sobeitnow'
+  'auto-move-new-workspace@sobeitnow',
+  'smart-alt-f4@local'
 ]"
 
 # Set auto-move app list (dock apps only)

@@ -182,9 +182,18 @@ cd ~/cachyos-setup/gnome-extensions
 - `touchpad-speed-control@ritesh` — per-app touchpad scroll speed
   (global `0.35`, browsers `0.35`).
 - `wayland-scroll-factor` — global scroll speed `0.35`.
+- `smart-alt-f4@local` — Windows-style Alt+F4: closes the focused window, or
+  shows the shutdown dialog when no window is left (needs one log out/in).
 - **Clipboard bug fix:** `wl-clipboard`'s Wayland helper creates tiny invisible
   windows on copy/paste; the extension uses a `100ms` delay + `WeakSet` vaccine
   to ignore them.
+
+**Windows-style keyboard shortcuts** (`gnome-extensions/keyboard-shortcuts.sh`):
+```bash
+./gnome-extensions/keyboard-shortcuts.sh
+# Alt+Shift toggles input language (English/Khmer), Alt+F4 closes window /
+# shows shutdown dialog when none left (needs smart-alt-f4 + one log out/in)
+```
 
 **Add/remove apps:**
 ```bash
