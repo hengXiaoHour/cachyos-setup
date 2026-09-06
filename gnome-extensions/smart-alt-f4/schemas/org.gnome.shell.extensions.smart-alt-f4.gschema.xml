@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.smart-alt-f4" path="/org/gnome/shell/extensions/smart-alt-f4/">
+    <key name="smart-close" type="as">
+      <default><![CDATA[['<Alt>F4']]]></default>
+      <summary>Smart close or shutdown</summary>
+      <description>Close the focused window, or show the shutdown dialog when no window is focused.</description>
+    </key>
+  </schema>
+</schemalist>

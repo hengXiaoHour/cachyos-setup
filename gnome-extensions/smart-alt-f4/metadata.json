@@ -1,0 +1,1 @@
+{"description": "Close window with Alt+F4, show shutdown dialog when no window is left", "name": "Smart Alt+F4", "shell-version": ["45", "46", "47", "48", "49", "50", "51"], "url": "https://github.com/cachyos", "uuid": "smart-alt-f4@local", "version": 1}
