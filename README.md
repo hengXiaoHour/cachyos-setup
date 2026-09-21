@@ -131,13 +131,21 @@ current project dir, and store data in `~/obsidian-vault/coordination/<project>/
 
 ## 2. Hermes Agent — Keyless (OpenCode Zen)
 
-Standalone setup to run **Hermes Agent** (Nous Research) with **no API keys**.
-Hermes's model provider points at OpenCode Zen, which serves free keyless
-models to anonymous requests.
+Standalone setup to run **Hermes Agent** (Nous Research). Its model provider
+points at OpenCode Zen; live machine (2026-09-15, v0.21.2) uses
+`opencode-free / muse-spark-1.3-contributor-free` (`api_mode=codex_responses`,
+no fallbacks) plus telegram platform and freecad + davinci-resolve MCP servers.
+
+> **STATUS 2026-09-15 — keyless is currently BLOCKED.** Zen gates the free tier
+> to a real client session (anonymous requests get `400 "OpenCode's free tier
+> can only be used in OpenCode"` / `MissingSessionID`). Config is kept to match
+> the live machine, but expect to need a Zen API key. See
+> [`hermes-opencode/README.md`](hermes-opencode/README.md).
 
 ```bash
 cd hermes-opencode
-./install.sh                        # official installer + keyless config + skills
+./install.sh                                                     # hermes CLI + live model config + skills
+ENABLE_TELEGRAM=1 INSTALL_FREECAD_MCP=1 INSTALL_DAVINCI_MCP=1 ./install.sh  # + live extras
 INSTALL_BROWSER=1 ./install.sh      # also install Playwright/Chromium browser tools
 ```
 
@@ -147,11 +155,12 @@ Or manually:
 curl -fsSL https://hermes-agent.nousresearch.com/install.sh \
   | bash -s -- --non-interactive --skip-setup
 
-hermes config set model.default laguna-s-2.1-free
+hermes config set model.default muse-spark-1.3-contributor-free
 hermes config set model.provider opencode-free
 hermes config set model.base_url https://opencode.ai/zen/v1
-# TOP-LEVEL key (not under model:) — hermes reads fallback_providers at root
-hermes config set fallback_providers '[{"provider":"opencode-free","model":"nemotron-3.5-lightning-free"},{"provider":"opencode-free","model":"nemotron-3-ultra-free"},{"provider":"opencode-free","model":"big-pickle"}]'
+hermes config set model.api_mode codex_responses
+# TOP-LEVEL key (not under model:) — live machine has NO fallbacks
+hermes config set fallback_providers '[]'
 ```
 
 Smoke test:

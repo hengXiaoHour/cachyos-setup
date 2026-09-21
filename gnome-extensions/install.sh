@@ -22,6 +22,15 @@ cp -r smart-alt-f4/* "$EXT_DIR/smart-alt-f4@local/"
 glib-compile-schemas "$EXT_DIR/smart-alt-f4@local/schemas" 2>/dev/null || true
 
 echo "Configuring extensions..."
+# Remove stale empty shadow dirs that would override working system copies
+# (an empty ~/.local/.../<uuid>/ with no metadata.json makes Shell fail the
+# extension entirely, e.g. dash-to-panel with "Missing metadata.json").
+for _uuid in 'dash-to-panel@jderose9.github.com' 'dash-to-dock@micxgx.gmail.com'; do
+  if [[ -d "$EXT_DIR/$_uuid" && ! -f "$EXT_DIR/$_uuid/metadata.json" ]]; then
+    echo "Removing broken shadow dir: $EXT_DIR/$_uuid"
+    rm -rf "$EXT_DIR/$_uuid"
+  fi
+done
 # Enable extensions
 gsettings set org.gnome.shell enabled-extensions "[
   'dash-to-panel@jderose9.github.com',

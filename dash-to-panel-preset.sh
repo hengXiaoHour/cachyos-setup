@@ -48,4 +48,8 @@ gsettings set $DTP trans-use-custom-opacity true
 gsettings set $DTP trans-panel-opacity 0.40000000000000002
 gsettings set $DTP trans-bg-color '#000'
 
+# Boot straight to desktop, not the zoomed-out overview
+gsettings set $DTP hide-overview-on-startup true
+gsettings set $DTP overview-click-to-exit true
+
 echo "Dash to Panel preset applied!"
