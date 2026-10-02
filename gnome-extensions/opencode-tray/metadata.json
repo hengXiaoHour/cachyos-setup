@@ -1,7 +1,0 @@
-{
-  "uuid": "opencode-tray@local",
-  "name": "OpenCode Tray",
-  "description": "Panel button that toggles a dedicated Ptyxis window running opencode. Launch on demand only - no autostart.",
-  "shell-version": ["50"],
-  "version": 2
-}
