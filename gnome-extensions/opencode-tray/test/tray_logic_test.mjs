@@ -91,7 +91,10 @@ globalThis.GLib = {
     get_monotonic_time: () => 0,
     find_program_in_path: () => '/home/chenla/.opencode/bin/opencode',
 };
-globalThis.Meta = { DisplayTabList: { NORMAL_ALL: 0, NORMAL: 1 } };
+// Mutter 18 / GNOME 50 exposes the enum as Meta.TabList. Meta.DisplayTabList
+// is undefined there, so mock the REAL name only -- if the extension regresses
+// to the wrong namespace, every window lookup returns [] and the suite fails.
+globalThis.Meta = { TabList: { NORMAL: 0, DOCKS: 1, GROUP: 2, NORMAL_ALL: 3 } };
 globalThis.St = { Label: class { constructor() { this.text = ''; } set_text(t) { this.text = t; } } };
 globalThis.Clutter = {
     ActorAlign: { CENTER: 0 },

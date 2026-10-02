@@ -129,25 +129,25 @@ export default class OpenCodeTrayExtension extends Extension {
         }
     }
 
-    // GNOME 46+ tab list, with fallbacks for older/odd runtimes.
+    // All normal windows.
+    //
+    // The enum namespace is Meta.TabList, NOT Meta.DisplayTabList -- the
+    // latter is undefined on Mutter 18 / GNOME 50 and silently made every
+    // lookup fail (which is what caused the duplicate-window bug the first
+    // time round). Probe both so older/newer Mutter both work.
     _allWindows() {
         try {
-            const dl = Meta.DisplayTabList;
+            const dl = Meta.TabList || Meta.DisplayTabList;
+            if (!dl)
+                throw new Error('no tab-list enum on Meta (' +
+                    Object.keys(Meta).filter(k => /Tab/i.test(k)).join('/') + ')');
             const type = dl.NORMAL_ALL !== undefined ? dl.NORMAL_ALL : dl.NORMAL;
             const list = global.display.get_tab_list(type, null);
             if (list && list.length)
                 return list;
+            return [];
         } catch (e) {
             this._log('tab list unavailable: ' + e);
-        }
-        try {
-            if (typeof global.get_window_actors === 'function') {
-                return global.get_window_actors()
-                    .map(a => a.metaWindow)
-                    .filter(w => !!w);
-            }
-        } catch (e) {
-            this._log('window actors unavailable: ' + e);
         }
         return [];
     }

@@ -75,6 +75,15 @@ if command -v node >/dev/null 2>&1; then
   else
     echo "WARNING: OpenCode tray logic test FAILED" >&2
   fi
+  # Checks the extension's API names against this machine's real Mutter, which
+  # is how the Meta.DisplayTabList -> Meta.TabList bug was caught.
+  if (cd opencode-tray && node test/api_contract_test.mjs >/dev/null 2>&1); then
+    echo "OpenCode tray API contract: PASS"
+  else
+    echo "WARNING: OpenCode tray API contract FAILED - the installed GNOME/Mutter" >&2
+    echo "         may expose different API names. Run:" >&2
+    echo "         cd opencode-tray && node test/api_contract_test.mjs" >&2
+  fi
 fi
 
 echo "Done! Log out/in to activate extensions."

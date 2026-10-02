@@ -61,8 +61,9 @@ window is still being created — without it one click could open two windows.
 ## Tests
 
 ```sh
-node test/tray_logic_test.mjs    # 26 checks against the real ../extension.js
-node test/old_tray_test.mjs      # negative control: reproduces the old bug
+node test/tray_logic_test.mjs      # 26 checks against the real ../extension.js
+node test/old_tray_test.mjs        # negative control: reproduces the old bug
+node test/api_contract_test.mjs    # verifies the API names against real Mutter
 ```
 
 `tray_logic_test.mjs` mocks the GNOME Shell APIs (`global`, `Gio`, `GLib`,
@@ -77,6 +78,22 @@ node test/tray_logic_test.mjs /path/to/extension.js
 `old_tray_test.mjs` holds the original title-based `_findWindow()` /
 `_toggle()` verbatim and asserts it *does* duplicate — if that ever stops
 failing, the main suite has become vacuous.
+
+### api_contract_test.mjs — the one that would have caught the second bug
+
+This one deliberately does **not** mock. It asks the real introspection data
+(`/usr/lib64/mutter-18/Meta-18.typelib` via `gjs` with `GI_TYPELIB_PATH`) what
+`Meta` actually exposes, then asserts the extension only uses names that exist.
+
+It exists because the second version of this extension referenced
+`Meta.DisplayTabList`, which is **undefined** on Mutter 18 / GNOME 50 — the enum
+namespace is `Meta.TabList`. Every window lookup returned `[]`, so the tracker
+never found its own window and every click spawned a duplicate again. The mock
+in `tray_logic_test.mjs` had defined `DisplayTabList`, so the unit suite passed
+while the extension was broken in the real shell.
+
+Run it after any GNOME/GNOME-version upgrade; it turns a silent runtime failure
+into a test failure.
 
 ## Why a logout is required after editing
 
@@ -102,6 +119,22 @@ tail -f /tmp/opencode/opencode-tray.log
 ```
 
 One `SPAWN` line per click is the expected healthy behaviour.
+
+## API names used (verified against Mutter 18 / GNOME 50)
+
+| Call | Verified |
+|---|---|
+| `Meta.TabList.NORMAL_ALL` | exists — **not** `Meta.DisplayTabList` (undefined) |
+| `global.display.get_tab_list(type, null)` | exists |
+| `global.display` `window-created` signal | passes `(display, win)` |
+| `Meta.Window.get_title()` / `get_wm_class()` | exist |
+| `Meta.Window.minimize()` / `unminimize()` / `.minimized` | exist |
+| `Meta.Window.get_compositor_private()` | exists (liveness check) |
+| `Meta.Window` `unmanaged` signal | exists (user closed the window) |
+| `global.get_window_actors()` | **removed** in GNOME 46+ — do not use |
+
+`extension.js` probes `Meta.TabList || Meta.DisplayTabList` so both older and
+newer Mutter work, and logs the enum names it found if neither resolves.
 
 ## GJS gotcha hit while writing this
 
