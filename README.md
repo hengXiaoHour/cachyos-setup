@@ -65,7 +65,7 @@ curl -fsSL .../uninstall.sh | bash -s -- -y
 | `uninstall.sh` | Revert everything (backs up to `~/.cachyos-backup/`) |
 | `opencode-config/` | OpenCode AI coding assistant configuration + MCP servers + plugins + skills |
 | `hermes-opencode/` | Keyless Hermes Agent, routed through OpenCode Zen (no API key) |
-| `gnome-extensions/` | Auto-move-to-workspace + touchpad scroll control extensions |
+| `gnome-extensions/` | Auto-move-to-workspace + touchpad scroll control + opencode TUI tray extensions |
 | `optimize-boot.sh` | Disable slow boot services for faster startup |
 | `fix-touchpad-scroll-arch.sh` | Build + install Wayland Scroll Factor |
 | `dash-to-panel-preset.sh` | Apply a Windows-style unified taskbar preset |
@@ -193,6 +193,10 @@ cd ~/cachyos-setup/gnome-extensions
 - `wayland-scroll-factor` — global scroll speed `0.35`.
 - `smart-alt-f4@local` — Windows-style Alt+F4: closes the focused window, or
   shows the shutdown dialog when no window is left (needs one log out/in).
+- `opencode-tray@local` — panel button (`○ OC` / `● OC`) that launches the
+  opencode TUI in its own terminal window; left-click toggles it, right-click
+  opens a menu. Launch on demand only — nothing auto-opens at login. See
+  [`gnome-extensions/opencode-tray/README.md`](gnome-extensions/opencode-tray/README.md).
 - **Clipboard bug fix:** `wl-clipboard`'s Wayland helper creates tiny invisible
   windows on copy/paste; the extension uses a `100ms` delay + `WeakSet` vaccine
   to ignore them.

@@ -21,6 +21,11 @@ mkdir -p "$EXT_DIR/smart-alt-f4@local"
 cp -r smart-alt-f4/* "$EXT_DIR/smart-alt-f4@local/"
 glib-compile-schemas "$EXT_DIR/smart-alt-f4@local/schemas" 2>/dev/null || true
 
+echo "Installing OpenCode Tray (opencode TUI panel button)..."
+mkdir -p "$EXT_DIR/opencode-tray@local"
+# copy only the extension files -- the test/ dir stays in the repo
+cp opencode-tray/extension.js opencode-tray/metadata.json "$EXT_DIR/opencode-tray@local/"
+
 echo "Configuring extensions..."
 # Remove stale empty shadow dirs that would override working system copies
 # (an empty ~/.local/.../<uuid>/ with no metadata.json makes Shell fail the
@@ -36,7 +41,8 @@ gsettings set org.gnome.shell enabled-extensions "[
   'dash-to-panel@jderose9.github.com',
   'touchpad-speed-control@ritesh',
   'auto-move-new-workspace@sobeitnow',
-  'smart-alt-f4@local'
+  'smart-alt-f4@local',
+  'opencode-tray@local'
 ]"
 
 # Set auto-move app list (dock apps only)
@@ -62,4 +68,15 @@ if command -v wsf &> /dev/null; then
     echo "Touchpad scroll speed set to 0.35"
 fi
 
+# Verify the OpenCode tray logic still passes (no live shell needed)
+if command -v node >/dev/null 2>&1; then
+  if (cd opencode-tray && node test/tray_logic_test.mjs >/dev/null 2>&1); then
+    echo "OpenCode tray logic test: PASS"
+  else
+    echo "WARNING: OpenCode tray logic test FAILED" >&2
+  fi
+fi
+
 echo "Done! Log out/in to activate extensions."
+echo "NOTE: GNOME 50 cannot hot-reload extensions -- disable/enable does not"
+echo "      re-run enable(), so the login is required for opencode-tray@local."
